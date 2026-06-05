@@ -1,0 +1,138 @@
+<div class="clientes-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Registro de Clientes</h1>
+      <p class="page-sub">Gestion y registro de clientes del sistema</p>
+    </div>
+    <button type="button" nbButton status="warning" class="btn-nuevo" (click)="openCreate()">
+      <nb-icon icon="plus-outline" />
+      Nuevo Cliente
+    </button>
+  </header>
+
+  <div class="toolbar">
+    <input
+      nbInput
+      fullWidth
+      class="search-input"
+      placeholder="Buscar cliente..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+    <button type="button" nbButton status="info" (click)="toggleFilters()">Filtros</button>
+  </div>
+
+  @if (showFilters()) {
+    <div class="filters-row">
+      <nb-select placeholder="Tipo" [selected]="filterTipo()" (selectedChange)="filterTipo.set($event)">
+        <nb-option value="TODOS">Todos los tipos</nb-option>
+        <nb-option value="VIP">VIP</nb-option>
+        <nb-option value="REGULAR">Regular</nb-option>
+        <nb-option value="NUEVO">Nuevo</nb-option>
+      </nb-select>
+      <nb-select placeholder="Estado" [selected]="filterEstado()" (selectedChange)="filterEstado.set($event)">
+        <nb-option value="TODOS">Todos</nb-option>
+        <nb-option value="ACTIVO">Activo</nb-option>
+        <nb-option value="INACTIVO">Inactivo</nb-option>
+      </nb-select>
+    </div>
+  }
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-total">
+      <span class="kpi-label">Total Clientes</span>
+      <span class="kpi-value">{{ stats().total }}</span>
+    </div>
+    <div class="kpi-card kpi-nuevos">
+      <span class="kpi-label">Nuevos (Mes)</span>
+      <span class="kpi-value">{{ stats().nuevosMes }}</span>
+    </div>
+    <div class="kpi-card kpi-vip">
+      <span class="kpi-label">VIP</span>
+      <span class="kpi-value">{{ stats().vip }}</span>
+    </div>
+    <div class="kpi-card kpi-inactivos">
+      <span class="kpi-label">Inactivos</span>
+      <span class="kpi-value">{{ stats().inactivos }}</span>
+    </div>
+  </div>
+
+  <nb-card class="table-card">
+    <nb-card-body>
+      @if (loading()) {
+        <div class="loading-center">
+          <nb-spinner status="primary" size="large" />
+        </div>
+      } @else {
+        <div class="table-wrap">
+          <table class="clientes-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Telefono</th>
+                <th>Email</th>
+                <th>Tipo</th>
+                <th>Vendedor</th>
+                <th>Estado</th>
+                <th>Accion</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of filtered(); track c.id) {
+                <tr [class.focus-highlight]="focusedId() === c.id">
+                  <td class="col-id">{{ codigoDisplay(c) }}</td>
+                  <td>{{ c.nombreCompleto || (c.nombres + ' ' + c.apellidos) }}</td>
+                  <td>{{ c.telefono || '—' }}</td>
+                  <td>{{ c.email }}</td>
+                  <td><span class="tipo-pill" [class]="tipoClass(c.tipoCliente)">{{ tipoLabel(c.tipoCliente) }}</span></td>
+                  <td>
+                    @if (c.vendedorAsignadoUsername) {
+                      {{ c.vendedorAsignadoUsername }}
+                    } @else {
+                      <span class="muted">Sin asignar</span>
+                    }
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      nbButton
+                      size="small"
+                      class="estado-toggle"
+                      [status]="c.activo ? 'success' : 'basic'"
+                      [disabled]="togglingId() === c.id"
+                      (click)="toggleActivo(c)"
+                    >
+                      @if (togglingId() === c.id) {
+                        <nb-spinner size="tiny" status="control" />
+                      } @else {
+                        {{ c.activo ? 'ACTIVO' : 'INACTIVO' }}
+                      }
+                    </button>
+                  </td>
+                  <td class="col-actions">
+                    <button type="button" nbButton size="small" status="info" (click)="openView(c)">Ver</button>
+                    <button type="button" nbButton size="small" status="basic" ghost (click)="openEdit(c)">Editar</button>
+                    @if (!c.vendedorAsignadoId && auth.hasRole('VENDEDOR')) {
+                      <button type="button" nbButton size="small" status="success" (click)="tomarCliente(c)">
+                        Tomar
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="8" class="empty-row">No hay clientes que coincidan con la búsqueda.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </nb-card-body>
+  </nb-card>
+</div>

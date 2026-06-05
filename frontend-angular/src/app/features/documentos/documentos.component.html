@@ -1,0 +1,71 @@
+<div class="documentos-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Gestión de Documentos</h1>
+      <p class="page-sub">Subida, verificación y control de documentos de importación <span class="ms-tag">MS-3</span></p>
+    </div>
+    <button type="button" nbButton status="warning" (click)="openUpload()">
+      <nb-icon icon="plus-outline" /> Subir Documento
+    </button>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-total"><span class="kpi-label">Total Docs</span><span class="kpi-value">{{ resumen().total }}</span></div>
+    <div class="kpi-card kpi-pendientes"><span class="kpi-label">Pendientes</span><span class="kpi-value">{{ resumen().pendientes }}</span></div>
+    <div class="kpi-card kpi-vencer"><span class="kpi-label">Por Vencer</span><span class="kpi-value">{{ resumen().porVencer }}</span></div>
+    <div class="kpi-card kpi-verificados"><span class="kpi-label">Verificados</span><span class="kpi-value">{{ resumen().verificados }}</span></div>
+  </div>
+
+  <h3 class="section-heading">CATEGORÍAS DE DOCUMENTOS</h3>
+  <div class="categorias-grid">
+    @for (c of categorias(); track c.nombre) {
+      <div class="categoria-card">
+        <nb-icon [icon]="c.icono" />
+        <span class="cat-nombre">{{ c.nombre }}</span>
+        <span class="cat-count">{{ c.cantidad }} archivos</span>
+      </div>
+    }
+  </div>
+
+  <input nbInput fullWidth class="search-input" placeholder="Buscar documento..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+
+  <nb-card class="table-card">
+    <nb-card-body>
+      @if (loading()) {
+        <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+      } @else {
+        <table class="docs-table">
+          <thead>
+            <tr><th>Documento</th><th>Vehículo</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr>
+          </thead>
+          <tbody>
+            @for (d of filtered(); track d.id) {
+              <tr>
+                <td class="col-doc">{{ d.nombre }}</td>
+                <td>{{ d.vehiculo }}</td>
+                <td>{{ d.tipo }}</td>
+                <td>{{ d.fecha }}</td>
+                <td><span [class]="estadoClass(d.estado)">{{ estadoLabel(d.estado) }}</span></td>
+                <td><button type="button" nbButton size="small" status="info">Ver</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </nb-card-body>
+  </nb-card>
+
+  <nb-card class="flujo-card">
+    <nb-card-header>FLUJO DE VERIFICACIÓN</nb-card-header>
+    <nb-card-body>
+      <div class="flujo-steps">
+        <span>Subida</span><nb-icon icon="arrow-forward-outline" />
+        <span>OCR/Scan</span><nb-icon icon="arrow-forward-outline" />
+        <span>Validación</span><nb-icon icon="arrow-forward-outline" />
+        <span>Aprobación</span><nb-icon icon="arrow-forward-outline" />
+        <span>Archivado S3</span>
+      </div>
+      <p class="flujo-note">Integración con MS-3 (OCR Deep Learning) y AWS S3 para almacenamiento seguro.</p>
+    </nb-card-body>
+  </nb-card>
+</div>

@@ -1,0 +1,100 @@
+<div class="vehiculos-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Catálogo de Vehículos</h1>
+      <p class="page-sub">{{ filtered().length }} vehículos en catálogo · {{ disponiblesCount() }} disponibles</p>
+    </div>
+    @if (canEdit()) {
+      <button type="button" nbButton status="warning" class="btn-agregar" (click)="openCreate()">
+        <nb-icon icon="plus-outline" />
+        Agregar
+      </button>
+    }
+  </header>
+
+  <div class="toolbar">
+    <input
+      nbInput
+      fullWidth
+      class="search-input"
+      placeholder="Buscar vehículo..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+    <button type="button" nbButton status="info" (click)="toggleFilters()">Filtros</button>
+  </div>
+
+  @if (showFilters()) {
+    <div class="filters-row">
+      <nb-select placeholder="Estado" [selected]="filterEstado()" (selectedChange)="filterEstado.set($event)">
+        <nb-option value="TODOS">Todos</nb-option>
+        <nb-option value="DISPONIBLE">Disponible</nb-option>
+        <nb-option value="RESERVADO">Reservado</nb-option>
+        <nb-option value="EN_IMPORTACION">En importación</nb-option>
+        <nb-option value="VENDIDO">Vendido</nb-option>
+      </nb-select>
+    </div>
+  }
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  @if (loading()) {
+    <div class="loading-center">
+      <nb-spinner status="primary" size="large" />
+    </div>
+  } @else if (filtered().length === 0) {
+    <nb-card>
+      <nb-card-body>
+        <p class="empty-msg">No hay vehículos que coincidan con la búsqueda.</p>
+      </nb-card-body>
+    </nb-card>
+  } @else {
+    <div class="vehiculos-grid">
+      @for (v of filtered(); track v.id) {
+        <nb-card class="vehiculo-card" [class.focus-highlight]="focusedId() === v.id">
+          <nb-card-header class="vehiculo-img-header">
+            <div class="vehiculo-img">
+              @if (mostrarImagen(v)) {
+                <img
+                  class="vehiculo-photo"
+                  [src]="v.imagenUrl!"
+                  [alt]="tituloVehiculo(v)"
+                  (error)="onImagenError(v.id)"
+                />
+              }
+              @if (!mostrarImagen(v)) {
+                <nb-icon icon="car-outline" />
+              }
+            </div>
+          </nb-card-header>
+          <nb-card-body>
+            <h3 class="vehiculo-name">{{ tituloVehiculo(v) }}</h3>
+            <dl class="vehiculo-specs">
+              <div><dt>VIN</dt><dd>{{ v.vin }}</dd></div>
+              <div><dt>MARCA</dt><dd>{{ v.marca }}</dd></div>
+              <div><dt>MODELO</dt><dd>{{ v.modelo }}</dd></div>
+              <div><dt>AÑO</dt><dd>{{ v.anio }}</dd></div>
+              <div><dt>COLOR</dt><dd>{{ v.color }}</dd></div>
+              <div><dt>PRECIO</dt><dd>{{ v.precio | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+            </dl>
+            <div class="card-footer-actions">
+              @if (canEdit()) {
+                <button type="button" nbButton size="small" status="info" (click)="openEdit(v)">EDITAR</button>
+              }
+              <button type="button" nbButton size="small" [status]="estadoStatus(v.estado)" class="estado-btn">
+                {{ v.estado }}
+              </button>
+            </div>
+            @if (auth.hasRole('ADMIN')) {
+              <button type="button" nbButton size="tiny" status="danger" ghost class="btn-delete" (click)="delete(v, $event)">
+                Eliminar
+              </button>
+            }
+          </nb-card-body>
+        </nb-card>
+      }
+    </div>
+  }
+</div>

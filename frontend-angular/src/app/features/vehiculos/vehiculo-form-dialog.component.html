@@ -1,0 +1,63 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">{{ title }}</h3>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field">
+      <label>VIN</label>
+      <input nbInput fullWidth formControlName="vin" placeholder="1HGBH41JXMN109186" />
+    </div>
+    <div class="form-field">
+      <label>Marca</label>
+      <input nbInput fullWidth formControlName="marca" placeholder="Toyota" />
+    </div>
+    <div class="form-field">
+      <label>Modelo</label>
+      <input nbInput fullWidth formControlName="modelo" placeholder="RAV4" />
+    </div>
+    <div class="form-field">
+      <label>Año</label>
+      <input nbInput fullWidth type="number" formControlName="anio" />
+    </div>
+    <div class="form-field">
+      <label>Color</label>
+      <input nbInput fullWidth formControlName="color" placeholder="Blanco" />
+    </div>
+    <div class="form-field">
+      <label>Precio</label>
+      <input nbInput fullWidth type="number" step="0.01" formControlName="precio" />
+    </div>
+    <div class="form-field form-field-wide">
+      <label>URL de imagen del vehículo</label>
+      <input
+        nbInput
+        fullWidth
+        formControlName="imagenUrl"
+        placeholder="https://ejemplo.com/fotos/toyota-rav4.jpg"
+      />
+      <span class="field-hint">Enlace público (https) a la foto del vehículo para el catálogo.</span>
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Estado</label>
+      <nb-select formControlName="estado" fullWidth>
+        @for (e of estados; track e) {
+          <nb-option [value]="e">{{ e }}</nb-option>
+        }
+      </nb-select>
+    </div>
+  </form>
+
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+      @if (saving()) {
+        <nb-spinner size="tiny" status="control" />
+      } @else {
+        GUARDAR VEHÍCULO
+      }
+    </button>
+  </div>
+</div>

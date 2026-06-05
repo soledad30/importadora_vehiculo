@@ -1,0 +1,144 @@
+.reportes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-basic-color);
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-hint-color);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: var(--background-basic-color-2);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  color: var(--text-hint-color);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.kpi-ventas { border-color: #00d68f; .kpi-value { color: #00d68f; } }
+.kpi-mes { border-color: #3366ff; .kpi-value { color: #5b7cff; } }
+.kpi-pendientes { border-color: #ffaa00; .kpi-value { color: #ffaa00; } }
+.kpi-proceso { border-color: #a855f7; .kpi-value { color: #c084fc; } }
+
+.sections-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.section-card {
+  margin-bottom: 0;
+}
+
+.metric-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-basic-color-3);
+
+    span {
+      color: var(--text-hint-color);
+    }
+
+    strong {
+      font-size: 1.1rem;
+      color: var(--text-basic-color);
+    }
+  }
+}
+
+.ranking-card {
+  margin-bottom: 0;
+}
+
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-basic-color-3);
+  }
+
+  th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-hint-color);
+  }
+}
+
+.col-id {
+  font-family: ui-monospace, monospace;
+  color: var(--text-hint-color);
+}
+
+.col-ventas {
+  color: #00d68f;
+  font-weight: 600;
+}
+
+.empty-msg {
+  text-align: center;
+  color: var(--text-hint-color);
+  margin: 1rem 0;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid,
+  .sections-grid {
+    grid-template-columns: 1fr;
+  }
+}

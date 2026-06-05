@@ -1,0 +1,82 @@
+<div class="cotizador-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Cotizador de Importación</h1>
+      <p class="page-sub">Calcula el costo total de importar un vehículo (CIF + Impuestos + transporte) <span class="ms-tag">MS-2</span></p>
+    </div>
+  </header>
+
+  <div class="cotizador-grid">
+    <nb-card class="form-card">
+      <nb-card-header>Datos del Vehículo</nb-card-header>
+      <nb-card-body>
+        <form [formGroup]="form" class="form-grid">
+          <div class="form-field"><label>Precio de Compra (USD)</label><input nbInput fullWidth type="number" formControlName="precioCompra" /></div>
+          <div class="form-field"><label>País de Origen</label><input nbInput fullWidth formControlName="paisOrigen" /></div>
+          <div class="form-field"><label>Puerto de Embarque</label><input nbInput fullWidth formControlName="puertoEmbarque" /></div>
+          <div class="form-field"><label>Puerto de Destino</label><input nbInput fullWidth formControlName="puertoDestino" /></div>
+          <div class="form-field"><label>Tipo de Vehículo</label><input nbInput fullWidth formControlName="tipoVehiculo" /></div>
+          <div class="form-field"><label>Año del Vehículo</label><input nbInput fullWidth type="number" formControlName="anio" /></div>
+          <div class="form-field"><label>Cilindrada (cc)</label><input nbInput fullWidth type="number" formControlName="cilindrada" /></div>
+          <div class="form-field"><label>Peso (kg)</label><input nbInput fullWidth type="number" formControlName="peso" /></div>
+        </form>
+        <button type="button" nbButton status="primary" fullWidth class="btn-calcular" (click)="calcular()" [disabled]="calculando()">
+          @if (calculando()) { <nb-spinner size="tiny" status="control" /> } @else { CALCULAR COSTO TOTAL }
+        </button>
+      </nb-card-body>
+    </nb-card>
+
+    @if (desglose(); as d) {
+      <nb-card class="desglose-card">
+        <nb-card-header>Desglose de Costos</nb-card-header>
+        <nb-card-body>
+          <ul class="desglose-list">
+            <li><span>Precio FOB</span><strong>{{ d.precioFob | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>Flete Marítimo</span><strong>{{ d.fleteMaritimo | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>Seguro (1.5%)</span><strong>{{ d.seguro | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li class="highlight-cif"><span>Valor CIF</span><strong>{{ d.valorCif | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>DAI (15%)</span><strong>{{ d.dai | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>ISC (10%)</span><strong>{{ d.isc | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>IVA (15%)</span><strong>{{ d.iva | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>ATP (1%)</span><strong>{{ d.atp | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>Transporte Interno</span><strong>{{ d.transporteInterno | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+            <li><span>Trámites Aduaneros</span><strong>{{ d.tramitesAduaneros | currency:'USD':'symbol':'1.2-2' }}</strong></li>
+          </ul>
+          <div class="total-row">
+            <span>Costo Total</span>
+            <strong class="total-value">{{ d.costoTotal | currency:'USD':'symbol':'1.2-2' }}</strong>
+          </div>
+          <div class="margen-box">
+            <span>Precio Sugerido de Venta ({{ d.margenPorcentaje }}% margen)</span>
+            <strong>{{ d.precioSugeridoVenta | currency:'USD':'symbol':'1.2-2' }}</strong>
+            <div class="margen-bar"><div class="margen-fill" [style.width.%]="d.margenPorcentaje"></div></div>
+            <small>Margen de Ganancia: {{ d.margenPorcentaje }}%</small>
+          </div>
+        </nb-card-body>
+      </nb-card>
+    }
+  </div>
+
+  <nb-card class="recientes-card">
+    <nb-card-header>Cotizaciones Recientes</nb-card-header>
+    <nb-card-body>
+      <table class="recientes-table">
+        <thead>
+          <tr><th>Vehículo</th><th>CIF</th><th>Impuestos</th><th>Total</th><th>Margen</th><th>Venta</th></tr>
+        </thead>
+        <tbody>
+          @for (c of recientes(); track c.vehiculo) {
+            <tr>
+              <td>{{ c.vehiculo }}</td>
+              <td>{{ c.cif | currency:'USD':'symbol':'1.0-0' }}</td>
+              <td>{{ c.impuestos | currency:'USD':'symbol':'1.0-0' }}</td>
+              <td>{{ c.total | currency:'USD':'symbol':'1.0-0' }}</td>
+              <td>{{ c.margen }}%</td>
+              <td class="col-venta">{{ c.venta | currency:'USD':'symbol':'1.0-0' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </nb-card-body>
+  </nb-card>
+</div>

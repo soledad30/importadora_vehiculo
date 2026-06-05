@@ -1,0 +1,274 @@
+.pedidos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-hint-color);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: var(--background-basic-color-2);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kpi-label {
+  font-size: 0.82rem;
+  color: var(--text-hint-color);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.kpi-pendiente {
+  border-color: #ffaa00;
+}
+
+.kpi-proceso {
+  border-color: #3366ff;
+}
+
+.kpi-completado {
+  border-color: #00d68f;
+}
+
+.kpi-cancelado {
+  border-color: #ff3d71;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+
+  .search-input {
+    flex: 1;
+  }
+
+  nb-select {
+    min-width: 180px;
+  }
+}
+
+.table-card {
+  margin: 0;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem;
+}
+
+.pedidos-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-basic-color-3);
+  }
+
+  th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-hint-color);
+  }
+
+  tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .row-selected {
+    background: rgba(51, 102, 255, 0.1) !important;
+  }
+}
+
+.col-codigo {
+  font-family: ui-monospace, monospace;
+  color: var(--text-hint-color);
+}
+
+.estado-pill {
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.estado-pendiente {
+  color: #ffaa00;
+}
+
+.estado-confirmado {
+  color: #5eb3ff;
+}
+
+.estado-en_importacion {
+  color: #b388ff;
+}
+
+.estado-entregado {
+  color: #00d68f;
+}
+
+.estado-cancelado {
+  color: #ff3d71;
+}
+
+.empty-row {
+  text-align: center;
+  color: var(--text-hint-color);
+  padding: 2rem !important;
+}
+
+.detalle-card {
+  margin: 0;
+
+  nb-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.detalle-layout {
+  display: grid;
+  grid-template-columns: 1fr min(320px, 38%);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.detalle-img {
+  width: 100%;
+  min-height: 200px;
+  height: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #1a2744, #2d3a5c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    min-height: 200px;
+    object-fit: cover;
+  }
+
+  nb-icon {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+.detalle-list {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+
+  div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  dt {
+    margin: 0;
+    color: var(--text-hint-color);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text-basic-color);
+  }
+}
+
+.detalle-total dd {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #00d68f;
+}
+
+.detalle-notas {
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+
+  &.muted {
+    color: var(--text-hint-color);
+  }
+}
+
+.detalle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-basic-color-3);
+}
+
+@media (max-width: 900px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .detalle-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .detalle-img {
+    order: -1;
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 520px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

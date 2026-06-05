@@ -1,0 +1,93 @@
+<div class="reportes-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Reportes</h1>
+      <p class="page-sub">Resumen general del negocio</p>
+    </div>
+  </header>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  @if (loading()) {
+    <div class="loading-center">
+      <nb-spinner status="primary" size="large" />
+    </div>
+  } @else {
+    @if (data(); as r) {
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-ventas">
+        <span class="kpi-label">Ventas Totales</span>
+        <span class="kpi-value">{{ formatCompact(r.ventasTotales) }}</span>
+      </div>
+      <div class="kpi-card kpi-mes">
+        <span class="kpi-label">Ventas del Mes</span>
+        <span class="kpi-value">{{ formatCompact(r.ventasMesActual) }}</span>
+      </div>
+      <div class="kpi-card kpi-pendientes">
+        <span class="kpi-label">Pedidos Pendientes</span>
+        <span class="kpi-value">{{ r.pedidosPendientes }}</span>
+      </div>
+      <div class="kpi-card kpi-proceso">
+        <span class="kpi-label">En Proceso</span>
+        <span class="kpi-value">{{ r.pedidosEnProceso }}</span>
+      </div>
+    </div>
+
+    <div class="sections-grid">
+      <nb-card class="section-card">
+        <nb-card-header>Operaciones</nb-card-header>
+        <nb-card-body>
+          <ul class="metric-list">
+            <li><span>Pedidos completados</span><strong>{{ r.pedidosCompletados }}</strong></li>
+            <li><span>Importaciones activas</span><strong>{{ r.importacionesActivas }}</strong></li>
+            <li><span>Facturas emitidas</span><strong>{{ r.facturasEmitidas }}</strong></li>
+          </ul>
+        </nb-card-body>
+      </nb-card>
+
+      <nb-card class="section-card">
+        <nb-card-header>Inventario y clientes</nb-card-header>
+        <nb-card-body>
+          <ul class="metric-list">
+            <li><span>Vehiculos disponibles</span><strong>{{ r.vehiculosDisponibles }}</strong></li>
+            <li><span>Vehiculos vendidos</span><strong>{{ r.vehiculosVendidos }}</strong></li>
+            <li><span>Clientes activos</span><strong>{{ r.clientesActivos }}</strong></li>
+          </ul>
+        </nb-card-body>
+      </nb-card>
+    </div>
+
+    <nb-card class="ranking-card">
+      <nb-card-header>Top Vendedores</nb-card-header>
+      <nb-card-body>
+        @if (r.topVendedores.length) {
+          <table class="ranking-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Ventas</th>
+                <th>Comision</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of r.topVendedores; track v.codigo) {
+                <tr>
+                  <td class="col-id">#{{ v.codigo }}</td>
+                  <td>{{ v.nombreCompleto }}</td>
+                  <td class="col-ventas">{{ v.ventasTotales | currency:'USD':'symbol':'1.0-0' }}</td>
+                  <td>{{ v.comisionPorcentaje }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty-msg">Sin datos de vendedores aun.</p>
+        }
+      </nb-card-body>
+    </nb-card>
+    }
+  }
+</div>

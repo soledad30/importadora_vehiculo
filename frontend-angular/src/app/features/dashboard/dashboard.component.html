@@ -1,0 +1,161 @@
+<div class="dashboard-page">
+  <header class="dash-header">
+    <h1 class="dash-title">DASHBOARD</h1>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    <div class="kpi-grid">
+      <a routerLink="/vehiculos" class="kpi-card kpi-stock">
+        <span class="kpi-value">{{ vehiculosStock() }}</span>
+        <span class="kpi-label">Vehículos en Stock</span>
+      </a>
+      @if (canOps()) {
+        <a routerLink="/pedidos" class="kpi-card kpi-pedidos">
+          <span class="kpi-value">{{ pedidosActivos() }}</span>
+          <span class="kpi-label">Pedidos Activos</span>
+        </a>
+        <a routerLink="/reportes" class="kpi-card kpi-ventas">
+          <span class="kpi-value">{{ ventasDisplay() }}</span>
+          <span class="kpi-label">Ventas del Mes</span>
+        </a>
+        <a routerLink="/importaciones" class="kpi-card kpi-transito">
+          <span class="kpi-value">{{ enTransito() }}</span>
+          <span class="kpi-label">En Tránsito</span>
+        </a>
+      } @else {
+        <a routerLink="/pedidos" class="kpi-card kpi-pedidos">
+          <span class="kpi-value">{{ pedidosActivos() }}</span>
+          <span class="kpi-label">Mis Pedidos Activos</span>
+        </a>
+        <div class="kpi-card kpi-ventas">
+          <span class="kpi-value">{{ ventasDisplay() }}</span>
+          <span class="kpi-label">Total Compras</span>
+        </div>
+      }
+    </div>
+
+    <div class="dashboard-body" [class.cliente-view]="isCliente()">
+      <div class="main-column">
+        @if (canOps()) {
+        <nb-card class="ventas-card">
+          <nb-card-body>
+            <div class="ventas-tabs">
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="ventasVista() === 'mensual'"
+                (click)="setVentasVista('mensual')"
+              >
+                VENTAS MENSUALES
+              </button>
+              <button
+                type="button"
+                class="tab-btn"
+                [class.active]="ventasVista() === 'anual'"
+                (click)="setVentasVista('anual')"
+              >
+                VENTAS ANUALES
+              </button>
+            </div>
+
+            <h3 class="section-title">{{ ventasTitulo() }}</h3>
+
+            <div class="charts-row">
+              <div class="chart-pie-wrap">
+                <div class="pie-chart" [style.background]="pieGradient()"></div>
+                <div class="pie-legend" role="list">
+                  @for (s of segmentosMensual(); track s.label) {
+                    <div class="legend-item" role="listitem">
+                      <span class="legend-dot" [style.background]="s.color"></span>
+                      <span>{{ s.label }} {{ s.porcentaje }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="chart-bars-wrap">
+                <div class="bars-chart">
+                  @for (h of barrasActuales(); track $index) {
+                    <div class="bar-col">
+                      <div class="bar" [style.height.%]="h" [style.background]="barColor($index)"></div>
+                    </div>
+                  }
+                  <svg class="trend-line" viewBox="0 0 200 80" preserveAspectRatio="none">
+                    <polyline
+                      points="0,55 40,40 80,50 120,25 160,35 200,15"
+                      fill="none"
+                      stroke="#ff3d71"
+                      stroke-width="2.5"
+                    />
+                    <polygon points="200,15 195,20 200,25" fill="#ff3d71" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </nb-card-body>
+        </nb-card>
+        }
+
+        <nb-card class="actividad-card">
+          <nb-card-header>{{ isCliente() ? 'Mis Pedidos Recientes' : 'Actividad Reciente' }}</nb-card-header>
+          <nb-card-body>
+            <div class="table-wrap">
+              <table class="actividad-table">
+                <thead>
+                  <tr>
+                    <th>Vehículo</th>
+                    @if (canOps()) {
+                      <th>Cliente</th>
+                    }
+                    <th>Estado</th>
+                    <th>Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (a of actividad(); track a.vehiculo + a.cliente) {
+                    <tr>
+                      <td class="col-vehiculo">{{ a.vehiculo }}</td>
+                      @if (canOps()) {
+                        <td class="col-cliente">{{ a.cliente }}</td>
+                      }
+                      <td><span [class]="a.estadoClass">{{ a.estado }}</span></td>
+                      <td class="col-monto">{{ a.monto | currency:'USD':'symbol':'1.0-0' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </nb-card-body>
+        </nb-card>
+      </div>
+
+      <aside class="notif-column">
+        <nb-card class="notif-card">
+          <nb-card-header class="notif-header-row">
+            <span>Notificaciones</span>
+            <a routerLink="/notificaciones" class="ver-todas">Ver todas</a>
+          </nb-card-header>
+          <nb-card-body>
+            <div class="notif-list" role="list">
+              @for (n of notifItems(); track n.id) {
+                <div
+                  role="listitem"
+                  [class]="'notif-' + tipoNotif(n.nivel)"
+                  [class.notif-clickable]="tieneDestinoNotif(n)"
+                  (click)="abrirNotif(n)"
+                >
+                  <nb-icon [icon]="iconoNotif(n)" />
+                  <span>{{ n.mensaje }}</span>
+                </div>
+              } @empty {
+                <div class="notif-empty" role="listitem">Sin notificaciones recientes</div>
+              }
+            </div>
+          </nb-card-body>
+        </nb-card>
+      </aside>
+    </div>
+  }
+</div>

@@ -1,0 +1,64 @@
+<div class="login-page">
+  <div class="login-wrap">
+    <header class="login-brand">
+      <div class="login-logo-ring">
+        <span class="login-logo">IV</span>
+      </div>
+      <h1 class="login-title">Importadora Vehículos</h1>
+      <p class="login-tagline">Sistema de Gestión de Importadora de Vehículos</p>
+    </header>
+
+    <div class="login-card">
+      <h2 class="card-title">Iniciar Sesión</h2>
+
+      @if (error()) {
+        <div class="login-error" role="alert">{{ error() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label class="field">
+          <span>Usuario</span>
+          <input
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            placeholder="usuario@empresa.com"
+          />
+        </label>
+
+        <label class="field">
+          <span>Contraseña</span>
+          <input
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+          />
+        </label>
+
+        <label class="remember">
+          <input type="checkbox" formControlName="rememberMe" />
+          <span>Recordarme</span>
+        </label>
+
+        <button type="submit" class="btn-login" [disabled]="loading()">
+          {{ loading() ? 'INGRESANDO…' : 'INICIAR SESIÓN' }}
+        </button>
+      </form>
+
+      @if (googleEnabled()) {
+        <div class="login-divider">
+          <span>o continuar con</span>
+        </div>
+        <div #googleBtnHost class="google-btn-host"></div>
+      }
+
+      <p class="register-line">
+        ¿No tienes cuenta?
+        <a routerLink="/registro" class="link-register">Regístrate aquí</a>
+      </p>
+
+      <p class="demo-hint">Demo: admin / admin123 · vendedor / vendedor123 · cliente / cliente123</p>
+    </div>
+  </div>
+</div>

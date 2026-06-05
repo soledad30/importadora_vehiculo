@@ -1,0 +1,53 @@
+.inspeccion-page { display: flex; flex-direction: column; gap: 1.25rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.page-title { margin: 0; font-size: 1.75rem; font-weight: 700; }
+.page-sub { margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--text-hint-color); }
+.ms-tag { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(168, 85, 247, 0.2); color: #c084fc; margin-left: 0.35rem; }
+
+.activa-card { margin-bottom: 0; }
+.meta { margin: 0 0 1rem; font-size: 0.85rem; color: var(--text-hint-color); }
+
+.activa-grid, .ocr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.foto-placeholder {
+  border: 2px dashed var(--border-basic-color-4); border-radius: 10px;
+  padding: 2.5rem 1.5rem; text-align: center; color: var(--text-hint-color);
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  nb-icon { font-size: 2.5rem; }
+  &.doc nb-icon { color: #5b7cff; }
+}
+
+.resultados h4, .ocr-datos h4 { margin: 0 0 0.75rem; font-size: 0.85rem; letter-spacing: 0.04em; color: var(--text-hint-color); }
+.resultados-list {
+  list-style: none; margin: 0; padding: 0;
+  li { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-basic-color-3); font-size: 0.9rem; }
+  span { color: var(--text-hint-color); }
+}
+
+.text-ok { color: #00d68f; }
+.text-warn { color: #ffaa00; }
+.text-danger { color: #ff3d71; }
+.text-leve { color: #5b7cff; }
+.text-moderada { color: #ffaa00; }
+.text-severa { color: #ff3d71; }
+
+.danos-table {
+  width: 100%; border-collapse: collapse;
+  th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border-basic-color-3); }
+  th { font-size: 0.75rem; text-transform: uppercase; color: var(--text-hint-color); }
+}
+
+.recientes-list {
+  list-style: none; margin: 0; padding: 0;
+  li {
+    display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: center;
+    padding: 0.65rem 0; border-bottom: 1px solid var(--border-basic-color-3);
+    .fecha { color: var(--text-hint-color); font-size: 0.85rem; }
+  }
+}
+
+.loading-center { display: flex; justify-content: center; padding: 3rem; }
+
+@media (max-width: 768px) {
+  .activa-grid, .ocr-grid { grid-template-columns: 1fr; }
+  .recientes-list li { grid-template-columns: 1fr; gap: 0.25rem; }
+}

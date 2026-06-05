@@ -1,0 +1,28 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">Nueva Inspección con IA</h3>
+  <p class="dialog-hint">Los análisis se procesarán en MS-3 (Deep Learning)</p>
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field form-field-wide">
+      <label>VIN del vehículo</label>
+      <input nbInput fullWidth formControlName="vin" placeholder="2T3P1RFV5RC123456" />
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Foto del vehículo</label>
+      <input type="file" accept="image/*" (change)="onFoto($event)" />
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Documento (opcional — OCR)</label>
+      <input type="file" accept=".pdf,image/*" />
+    </div>
+  </form>
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+      @if (saving()) {
+        <nb-spinner size="tiny" status="control" />
+      } @else {
+        INICIAR ANÁLISIS IA
+      }
+    </button>
+  </div>
+</div>

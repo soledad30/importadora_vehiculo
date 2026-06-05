@@ -1,0 +1,53 @@
+<div class="blockchain-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Historial Blockchain</h1>
+      <p class="page-sub">Trazabilidad inmutable del ciclo de vida de cada vehículo <span class="ms-tag">MS-2</span></p>
+    </div>
+  </header>
+
+  <input
+    nbInput fullWidth
+    class="search-input"
+    placeholder="Buscar por VIN o TX Hash..."
+    [ngModel]="search()"
+    (ngModelChange)="search.set($event)"
+  />
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    @for (v of filtered(); track v.vin) {
+      <nb-card class="vehiculo-card">
+        <nb-card-body>
+          <div class="vehiculo-head">
+            <div>
+              <h2>{{ v.titulo }} | VIN: {{ v.vin }}</h2>
+              <p class="meta">Blockchain ID: {{ v.blockchainId }} | Red: {{ v.red }} | {{ v.eventos.length }} eventos registrados</p>
+            </div>
+            <span class="badge-verificado">Verificado</span>
+          </div>
+
+          <h4 class="section-title">CADENA DE CUSTODIA</h4>
+          <div class="timeline-vertical">
+            @for (ev of v.eventos; track ev.fecha + ev.titulo) {
+              <div class="timeline-item">
+                <div class="timeline-node" [class]="eventoClass(ev.tipo)"></div>
+                <div class="timeline-content">
+                  <span class="ev-fecha">{{ ev.fecha }}</span>
+                  <strong class="ev-titulo">{{ ev.titulo }}</strong>
+                  <p class="ev-detalle">{{ ev.detalle }}</p>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="tx-footer">
+            <div><span class="tx-label">Último TX Hash</span><code>{{ shortHash(v.ultimoTxHash) }}</code></div>
+            <div class="tx-stats">Block: {{ v.block }} | Gas: {{ v.gas }} | Confirmaciones: {{ v.confirmaciones }}</div>
+          </div>
+        </nb-card-body>
+      </nb-card>
+    }
+  }
+</div>

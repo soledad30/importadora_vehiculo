@@ -1,0 +1,49 @@
+.proveedores-page { display: flex; flex-direction: column; gap: 1.25rem; }
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.page-title { margin: 0; font-size: 1.75rem; font-weight: 700; }
+.page-sub { margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--text-hint-color); }
+.ms-tag { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 4px; background: rgba(91, 124, 255, 0.2); color: #5b7cff; margin-left: 0.35rem; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.kpi-card { text-align: center; padding: 1rem; border-radius: 10px; border: 2px solid transparent; }
+.kpi-value { display: block; font-size: 2rem; font-weight: 700; }
+.kpi-label { font-size: 0.85rem; color: var(--text-hint-color); }
+.kpi-subastas { border-color: #3366ff; .kpi-value { color: #5b7cff; } }
+.kpi-navieras { border-color: #ffaa00; .kpi-value { color: #ffaa00; } }
+.kpi-dealers { border-color: #00d68f; .kpi-value { color: #00d68f; } }
+.kpi-agentes { border-color: #a855f7; .kpi-value { color: #c084fc; } }
+
+.sections-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.section-wide { grid-column: 1 / -1; }
+.section-heading { margin: 0 0 0.75rem; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--text-hint-color); }
+
+.proveedor-cards { display: flex; flex-direction: column; gap: 0.65rem; &.cols-3 { display: grid; grid-template-columns: repeat(3, 1fr); } }
+.proveedor-card {
+  background: var(--background-basic-color-2); border-radius: 8px; padding: 1rem;
+  border-left: 4px solid var(--border-basic-color-4);
+  display: flex; flex-direction: column; gap: 0.25rem;
+  strong { font-size: 1rem; }
+  .detalle { font-size: 0.85rem; color: var(--text-hint-color); }
+  .metrica { font-weight: 600; font-size: 0.9rem; }
+  &.color-blue { border-left-color: #3366ff; .metrica { color: #5b7cff; } }
+  &.color-orange { border-left-color: #ffaa00; .metrica { color: #ffaa00; } }
+  &.color-green { border-left-color: #00d68f; .metrica { color: #00d68f; } }
+  &.color-purple { border-left-color: #a855f7; .metrica { color: #c084fc; } }
+}
+
+.agentes-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.agente-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.85rem 1rem; border-radius: 8px; background: var(--background-basic-color-2);
+  border-left: 4px solid #3366ff;
+  div { display: flex; flex-direction: column; gap: 0.2rem; span { font-size: 0.85rem; color: var(--text-hint-color); } }
+  &.color-orange { border-left-color: #ffaa00; }
+  &.color-green { border-left-color: #00d68f; }
+}
+
+.loading-center { display: flex; justify-content: center; padding: 2rem; }
+
+@media (max-width: 900px) {
+  .kpi-grid, .sections-grid { grid-template-columns: 1fr; }
+  .proveedor-cards.cols-3 { grid-template-columns: 1fr; }
+}

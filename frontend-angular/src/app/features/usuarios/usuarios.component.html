@@ -1,0 +1,178 @@
+<div class="page-header">
+  <div>
+    <h4>Usuarios del sistema</h4>
+    <p class="page-sub">
+      @if (isAdmin()) {
+        Como administrador puede registrar usuarios y restablecer la contraseña de vendedores o clientes que la olvidaron.
+      } @else {
+        Como vendedor solo puede registrar usuarios CLIENTE vinculados a un cliente.
+      }
+    </p>
+  </div>
+  <button type="button" nbButton status="primary" (click)="openCreate()">
+    <nb-icon icon="person-add-outline" />
+    Nuevo usuario
+  </button>
+</div>
+
+@if (success() && !showForm() && !resetTarget()) {
+  <nb-alert status="success" (close)="success.set(null)">{{ success() }}</nb-alert>
+}
+
+@if (error() && !showForm() && !resetTarget()) {
+  <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+}
+
+@if (resetTarget(); as u) {
+  <nb-card class="form-card">
+    <nb-card-header>Restablecer contraseña — {{ u.username }}</nb-card-header>
+    <nb-card-body>
+      <p class="page-sub">
+        Use esta opción si el {{ rolLabel(u.rol) }} olvidó su clave. Más adelante podrá recuperarla por correo (ver docs/RECUPERACION_CONTRASENA.md).
+      </p>
+      @if (error()) {
+        <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+      }
+      <form [formGroup]="resetForm" class="form-grid">
+        <div class="form-field">
+          <label>Nueva contraseña</label>
+          <input nbInput fullWidth type="password" formControlName="password" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="form-field">
+          <label>Confirmar contraseña</label>
+          <input nbInput fullWidth type="password" formControlName="confirmPassword" />
+        </div>
+      </form>
+    </nb-card-body>
+    <nb-card-footer class="form-actions">
+      <button type="button" nbButton status="basic" (click)="cancelReset()">Cancelar</button>
+      <button type="button" nbButton status="warning" (click)="saveResetPassword()">
+        <nb-icon icon="lock-outline" />
+        Guardar nueva contraseña
+      </button>
+    </nb-card-footer>
+  </nb-card>
+}
+
+@if (showForm()) {
+  <nb-card class="form-card">
+    <nb-card-header>Registrar nuevo usuario</nb-card-header>
+    <nb-card-body>
+      @if (error()) {
+        <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+      }
+      <form [formGroup]="form" class="form-grid">
+        <div class="form-field">
+          <label>Usuario</label>
+          <input nbInput fullWidth formControlName="username" placeholder="Nombre de acceso" />
+        </div>
+        <div class="form-field">
+          <label>Contraseña</label>
+          <input nbInput fullWidth type="password" formControlName="password" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="form-field">
+          <label>Email</label>
+          <input nbInput fullWidth type="email" formControlName="email" />
+        </div>
+        <div class="form-field">
+          <label>Rol</label>
+          <nb-select formControlName="rol" fullWidth (selectedChange)="onRolChange()">
+            @for (r of rolesDisponibles(); track r.value) {
+              <nb-option [value]="r.value">{{ r.label }}</nb-option>
+            }
+          </nb-select>
+        </div>
+        @if (form.controls.rol.value === 'CLIENTE') {
+          <div class="form-field form-field-wide">
+            <label>Cliente vinculado</label>
+            <nb-select formControlName="clienteId" fullWidth placeholder="Seleccione cliente">
+              @for (c of clientes(); track c.id) {
+                <nb-option [value]="c.id">{{ c.nombreCompleto || (c.nombres + ' ' + c.apellidos) }} ({{ c.numeroDocumento }})</nb-option>
+              }
+            </nb-select>
+          </div>
+        }
+      </form>
+    </nb-card-body>
+    <nb-card-footer class="form-actions">
+      <button type="button" nbButton status="basic" (click)="showForm.set(false)">Cancelar</button>
+      <button type="button" nbButton status="primary" (click)="save()">Registrar</button>
+    </nb-card-footer>
+  </nb-card>
+}
+
+<nb-card>
+  <nb-card-body>
+    @if (loading()) {
+      <div class="loading-center">
+        <nb-spinner status="primary" size="large" />
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              @if (isAdmin()) {
+                <th></th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of items(); track u.id) {
+              <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ rolLabel(u.rol) }}</td>
+                <td>{{ u.clienteNombre || '—' }}</td>
+                <td>
+                  @if (isAdmin()) {
+                    <button
+                      type="button"
+                      nbButton
+                      size="small"
+                      class="estado-toggle"
+                      [status]="u.activo ? 'success' : 'basic'"
+                      [disabled]="togglingId() === u.id"
+                      (click)="cambiarEstado(u)"
+                    >
+                      @if (togglingId() === u.id) {
+                        <nb-spinner size="tiny" status="control" />
+                      } @else {
+                        {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
+                      }
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      nbButton
+                      size="small"
+                      class="estado-toggle"
+                      [status]="u.activo ? 'success' : 'basic'"
+                      disabled
+                    >
+                      {{ u.activo ? 'ACTIVO' : 'INACTIVO' }}
+                    </button>
+                  }
+                </td>
+                @if (isAdmin()) {
+                  <td class="actions-cell">
+                    @if (puedeRestablecerContrasena(u)) {
+                      <button type="button" nbButton size="small" status="warning" ghost (click)="openResetPassword(u)">
+                        Restablecer contraseña
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </nb-card-body>
+</nb-card>

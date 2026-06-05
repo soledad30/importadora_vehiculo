@@ -1,0 +1,28 @@
+@import '../clientes/cliente-form-dialog.component.scss';
+
+.preview-total {
+  background: rgba(51, 102, 255, 0.12);
+  border: 1px solid rgba(91, 124, 255, 0.35);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: grid;
+  gap: 0.4rem;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-hint-color);
+  }
+
+  strong {
+    color: var(--text-basic-color);
+  }
+}
+
+.preview-total-row {
+  margin-top: 0.35rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-basic-color-3);
+  font-size: 0.95rem !important;
+}

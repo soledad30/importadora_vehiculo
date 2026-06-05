@@ -1,0 +1,76 @@
+<div class="auth-page">
+  <div class="auth-wrap">
+    <header class="auth-brand">
+      <div class="auth-logo-ring">
+        <span class="auth-logo">IV</span>
+      </div>
+      <h1 class="auth-title">Importadora Vehículos</h1>
+      <p class="auth-tagline">Crear nueva cuenta</p>
+    </header>
+
+    <div class="auth-card auth-card-wide">
+      <h2 class="card-title">Registro de Usuario</h2>
+
+      @if (error()) {
+        <div class="auth-error" role="alert">{{ error() }}</div>
+      }
+      @if (success()) {
+        <div class="auth-success" role="status">{{ success() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <label class="field">
+          <span>Nombre completo</span>
+          <input type="text" formControlName="nombreCompleto" placeholder="Juan Pérez" />
+        </label>
+
+        <label class="field">
+          <span>Correo electrónico</span>
+          <input type="email" formControlName="email" placeholder="usuario@empresa.com" />
+        </label>
+
+        <label class="field">
+          <span>Teléfono</span>
+          <input type="tel" formControlName="telefono" placeholder="+1 (555) 123-4567" />
+        </label>
+
+        <label class="field">
+          <span>Rol</span>
+          <select formControlName="rol">
+            @for (r of roles; track r.value) {
+              <option [value]="r.value">{{ r.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Contraseña</span>
+          <input type="password" formControlName="password" placeholder="••••••••" autocomplete="new-password" />
+        </label>
+
+        <label class="field">
+          <span>Confirmar contraseña</span>
+          <input
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+        </label>
+
+        @if (form.errors?.['passwordMismatch'] && form.touched) {
+          <p class="field-hint error">Las contraseñas no coinciden</p>
+        }
+
+        <button type="submit" class="btn-register" [disabled]="loading()">
+          {{ loading() ? 'CREANDO…' : 'CREAR CUENTA' }}
+        </button>
+      </form>
+
+      <p class="auth-footer-line">
+        ¿Ya tienes cuenta?
+        <a routerLink="/login">Inicia sesión</a>
+      </p>
+    </div>
+  </div>
+</div>

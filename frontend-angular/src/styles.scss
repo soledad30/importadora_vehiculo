@@ -1,0 +1,319 @@
+/* Utilidades compartidas (pantallas aún sin migrar a Nebular) */
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  line-height: 1.5;
+}
+
+body.nb-theme-dark {
+  background-color: #151a30;
+  color: #edf1f7;
+}
+
+body.nb-theme-default {
+  background-color: #f5f5f5;
+  color: #222b45;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+
+
+.form-grid {
+
+  display: grid;
+
+  gap: 1rem;
+
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+}
+
+
+
+.form-field {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.35rem;
+
+
+
+  label {
+
+    font-size: 0.85rem;
+
+    opacity: 0.8;
+
+  }
+
+}
+
+
+
+.page-header {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 1.5rem;
+
+
+
+  h1,
+
+  h4 {
+
+    margin: 0;
+
+    font-weight: 600;
+
+  }
+
+}
+
+
+
+.table-wrap {
+
+  overflow-x: auto;
+
+}
+
+
+
+table {
+
+  width: 100%;
+
+  border-collapse: collapse;
+
+
+
+  th,
+
+  td {
+
+    padding: 0.75rem 1rem;
+
+    text-align: left;
+
+    border-bottom: 1px solid var(--divider-color, rgba(255, 255, 255, 0.08));
+
+  }
+
+
+
+  th {
+
+    font-size: 0.8rem;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.04em;
+
+    opacity: 0.7;
+
+  }
+
+}
+
+
+
+/* Botones legacy en vehículos, pedidos, etc. */
+
+.btn {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 0.5rem;
+
+  padding: 0.55rem 1rem;
+
+  border: none;
+
+  border-radius: 0.375rem;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: background 0.15s;
+
+
+
+  &-primary {
+
+    background: var(--color-primary-default, #3366ff);
+
+    color: #fff;
+
+  }
+
+
+
+  &-ghost {
+
+    background: transparent;
+
+    border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.2));
+
+  }
+
+
+
+  &-sm {
+
+    padding: 0.35rem 0.65rem;
+
+    font-size: 0.85rem;
+
+  }
+
+}
+
+
+
+.card {
+
+  margin-bottom: 1rem;
+
+}
+
+
+
+.badge {
+
+  display: inline-block;
+
+  padding: 0.2rem 0.55rem;
+
+  border-radius: 999px;
+
+  font-size: 0.75rem;
+
+  font-weight: 600;
+
+
+
+  &-ok {
+
+    background: rgba(0, 214, 143, 0.2);
+
+    color: #00d68f;
+
+  }
+
+
+
+  &-warn {
+
+    background: rgba(255, 170, 0, 0.2);
+
+    color: #ffaa00;
+
+  }
+
+
+
+  &-muted {
+
+    background: rgba(143, 155, 179, 0.2);
+
+    color: #8f9bb3;
+
+  }
+
+
+
+  &-danger {
+
+    background: rgba(255, 61, 113, 0.2);
+
+    color: #ff3d71;
+
+  }
+
+}
+
+
+
+.alert-error {
+
+  margin-bottom: 1rem;
+
+}
+
+
+
+.muted {
+
+  opacity: 0.7;
+
+}
+
+.focus-highlight {
+  outline: 2px solid #5b7cff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(91, 124, 255, 0.25);
+}
+
+.estado-toggle {
+  min-width: 5.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Modal registro de clientes — fondo opaco sobre el overlay */
+.cdk-overlay-pane.cliente-dialog-panel,
+.cliente-dialog-panel {
+  nb-dialog-container {
+    background: transparent !important;
+    border-radius: 12px;
+    overflow: hidden;
+    padding: 0;
+  }
+}
+
+.nb-theme-default .cdk-overlay-pane.cliente-dialog-panel nb-dialog-container,
+.nb-theme-default .cliente-dialog-panel nb-dialog-container {
+  background: var(--background-basic-color-1, #ffffff) !important;
+}
+
+.cliente-dialog-panel .dialog-shell {
+  background: var(--background-basic-color-2, #222b45) !important;
+  color: var(--text-basic-color, #edf1f7);
+}
+
+.nb-theme-default .cliente-dialog-panel .dialog-shell {
+  background: var(--background-basic-color-1, #ffffff) !important;
+  color: var(--text-basic-color, #222b45);
+}
+

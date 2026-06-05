@@ -1,0 +1,78 @@
+<div class="proveedores-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Gestión de Proveedores</h1>
+      <p class="page-sub">Registro y control de subastas, dealers y navieras <span class="ms-tag">MS-2</span></p>
+    </div>
+    <button type="button" nbButton status="warning" (click)="openCreate()">
+      <nb-icon icon="plus-outline" /> Nuevo Proveedor
+    </button>
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-subastas"><span class="kpi-value">{{ resumen().subastas }}</span><span class="kpi-label">Subastas</span></div>
+    <div class="kpi-card kpi-navieras"><span class="kpi-value">{{ resumen().navieras }}</span><span class="kpi-label">Navieras</span></div>
+    <div class="kpi-card kpi-dealers"><span class="kpi-value">{{ resumen().dealers }}</span><span class="kpi-label">Dealers</span></div>
+    <div class="kpi-card kpi-agentes"><span class="kpi-value">{{ resumen().agentes }}</span><span class="kpi-label">Agentes</span></div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    <div class="sections-grid">
+      <section>
+        <h3 class="section-heading">SUBASTAS REGISTRADAS</h3>
+        <div class="proveedor-cards">
+          @for (p of subastas(); track p.id) {
+            <div class="proveedor-card" [class]="colorClass(p.color)">
+              <strong>{{ p.nombre }}</strong>
+              <span class="detalle">{{ p.detalle }}</span>
+              <span class="metrica">{{ p.metrica }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section>
+        <h3 class="section-heading">NAVIERAS Y TRANSPORTE</h3>
+        <div class="proveedor-cards">
+          @for (p of navieras(); track p.id) {
+            <div class="proveedor-card" [class]="colorClass(p.color)">
+              <strong>{{ p.nombre }}</strong>
+              <span class="detalle">{{ p.detalle }}</span>
+              <span class="metrica">{{ p.metrica }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="section-wide">
+        <h3 class="section-heading">AGENTES ADUANEROS</h3>
+        <div class="agentes-list">
+          @for (p of agentes(); track p.id) {
+            <div class="agente-row" [class]="colorClass(p.color)">
+              <div>
+                <strong>{{ p.nombre }}</strong>
+                <span>{{ p.detalle }} | {{ p.metrica }}</span>
+              </div>
+              <button type="button" nbButton size="small" status="info">Ver</button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="section-wide">
+        <h3 class="section-heading">DEALERS</h3>
+        <div class="proveedor-cards cols-3">
+          @for (p of dealers(); track p.id) {
+            <div class="proveedor-card" [class]="colorClass(p.color)">
+              <strong>{{ p.nombre }}</strong>
+              <span class="detalle">{{ p.detalle }}</span>
+              <span class="metrica">{{ p.metrica }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+  }
+</div>

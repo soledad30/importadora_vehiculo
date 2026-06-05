@@ -1,0 +1,62 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">Formulario de Nueva Factura</h3>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field form-field-wide">
+      <label>Pedido</label>
+      <nb-select
+        formControlName="pedidoId"
+        fullWidth
+        placeholder="Seleccionar pedido"
+        (selectedChange)="onPedidoChange($event)"
+      >
+        @for (p of pedidos; track p.id) {
+          <nb-option [value]="p.id">
+            {{ pedidoCodigo(p) }} — {{ p.clienteNombre }}
+            ({{ p.total | currency:'USD':'symbol':'1.0-0' }})
+          </nb-option>
+        }
+      </nb-select>
+    </div>
+    <div class="form-field form-field-wide numero-auto">
+      <label>Numero factura</label>
+      <div class="numero-preview">{{ siguienteNumero() }}</div>
+      <span class="numero-hint">Se genera automaticamente al guardar</span>
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Monto</label>
+      <input nbInput fullWidth type="number" step="0.01" formControlName="monto" />
+    </div>
+
+    @if (pedidoSeleccionado(); as p) {
+      <div class="pedido-preview form-field-wide">
+        <span class="preview-title">Resumen del pedido</span>
+        <div class="preview-grid">
+          <div><strong>Cliente:</strong> {{ p.clienteNombre }}</div>
+          <div><strong>Vendedor:</strong> {{ p.vendedorUsername ?? 'Sin asignar' }}</div>
+          <div class="preview-wide"><strong>Vehiculo:</strong> {{ p.vehiculoTitulo }}</div>
+          <div><strong>VIN:</strong> {{ p.vehiculoVin ?? '—' }}</div>
+          <div><strong>Base:</strong> {{ p.precioBase | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div><strong>Impuestos:</strong> {{ p.impuestos | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div><strong>Envio:</strong> {{ p.envio | currency:'USD':'symbol':'1.0-0' }}</div>
+          <div><strong>Total:</strong> {{ p.total | currency:'USD':'symbol':'1.0-0' }}</div>
+        </div>
+      </div>
+    }
+  </form>
+
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+      @if (saving()) {
+        <nb-spinner size="tiny" status="control" />
+      } @else {
+        GUARDAR FACTURA
+      }
+    </button>
+  </div>
+</div>

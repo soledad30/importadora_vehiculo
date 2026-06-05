@@ -1,0 +1,159 @@
+.importaciones-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.page-title { margin: 0; font-size: 1.75rem; font-weight: 700; }
+.page-sub { margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--text-hint-color); }
+
+.ms-tag {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: rgba(91, 124, 255, 0.2);
+  color: #5b7cff;
+  margin-left: 0.35rem;
+}
+
+.embarques-list { display: flex; flex-direction: column; gap: 1rem; }
+
+.embarque-card { margin-bottom: 0; }
+
+.embarque-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.embarque-codigo {
+  font-size: 0.8rem;
+  color: var(--text-hint-color);
+  font-family: ui-monospace, monospace;
+}
+
+.embarque-vehiculo { margin: 0.25rem 0; font-size: 1.2rem; }
+.embarque-ref { margin: 0; font-size: 0.85rem; color: var(--text-hint-color); }
+.embarque-ruta {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  .naviera { margin-left: 0.5rem; color: var(--text-hint-color); }
+}
+
+.estado-badge {
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-transito { background: rgba(0, 214, 143, 0.2); color: #00d68f; }
+.badge-aduana { background: rgba(255, 170, 0, 0.2); color: #ffaa00; }
+.badge-liberado { background: rgba(0, 214, 143, 0.25); color: #00e676; }
+.badge-completado { background: rgba(51, 102, 255, 0.2); color: #5b7cff; }
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.timeline-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 90px;
+  gap: 0.5rem;
+
+  .step-node {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--border-basic-color-4);
+    background: var(--background-basic-color-3);
+  }
+
+  .step-label {
+    font-size: 0.7rem;
+    color: var(--text-hint-color);
+    text-align: center;
+  }
+
+  &.done .step-node { background: #3366ff; border-color: #3366ff; }
+  &.active .step-node {
+    background: #5b7cff;
+    border-color: #5b7cff;
+    box-shadow: 0 0 0 4px rgba(91, 124, 255, 0.3);
+  }
+  &.active .step-label { color: #5b7cff; font-weight: 600; }
+}
+
+.timeline-line {
+  flex: 1;
+  min-width: 24px;
+  height: 3px;
+  background: var(--border-basic-color-4);
+  margin-bottom: 1.25rem;
+  &.done { background: #3366ff; }
+}
+
+.resumen-card { margin-bottom: 0; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.kpi-card {
+  text-align: center;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  .kpi-value { display: block; font-size: 2rem; font-weight: 700; }
+  .kpi-label { font-size: 0.85rem; color: var(--text-hint-color); }
+}
+.kpi-transito { border-color: #3366ff; .kpi-value { color: #5b7cff; } }
+.kpi-aduana { border-color: #ffaa00; .kpi-value { color: #ffaa00; } }
+.kpi-pago { border-color: #ff3d71; .kpi-value { color: #ff3d71; } }
+.kpi-completadas { border-color: #00d68f; .kpi-value { color: #00d68f; } }
+
+.section-title { margin: 0 0 0.75rem; font-size: 0.95rem; }
+
+.proximas-table {
+  width: 100%;
+  border-collapse: collapse;
+  th, td { padding: 0.65rem 1rem; text-align: left; border-bottom: 1px solid var(--border-basic-color-3); }
+  th { font-size: 0.75rem; text-transform: uppercase; color: var(--text-hint-color); }
+  .col-id { font-family: ui-monospace, monospace; color: var(--text-hint-color); }
+  .countdown { color: #5b7cff; font-weight: 600; }
+}
+
+.map-placeholder {
+  border: 2px dashed var(--border-basic-color-4);
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--text-hint-color);
+  nb-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  h3 { margin: 0 0 0.35rem; color: var(--text-basic-color); font-size: 1rem; }
+  p { margin: 0; font-size: 0.85rem; }
+}
+
+.loading-center { display: flex; justify-content: center; padding: 3rem; }
+
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .embarque-head { flex-direction: column; }
+}

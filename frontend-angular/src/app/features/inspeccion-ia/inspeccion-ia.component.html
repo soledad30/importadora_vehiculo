@@ -1,0 +1,101 @@
+<div class="inspeccion-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Inspección con Inteligencia Artificial</h1>
+      <p class="page-sub">Detección de daños, reconocimiento de modelos y OCR con Deep Learning <span class="ms-tag">MS-3</span></p>
+    </div>
+    <button type="button" nbButton status="warning" (click)="openNueva()">
+      <nb-icon icon="plus-outline" /> Nueva Inspección
+    </button>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    @if (activa(); as ins) {
+    <nb-card class="activa-card">
+      <nb-card-header>INSPECCIÓN ACTIVA — {{ ins.vehiculo }}</nb-card-header>
+      <nb-card-body>
+        <p class="meta">VIN: {{ ins.vin }} | Fecha: {{ ins.fecha }}</p>
+        <div class="activa-grid">
+          <div class="foto-placeholder">
+            <nb-icon icon="image-outline" />
+            <span>[Foto Vehículo]</span>
+            <small>Análisis en Progreso...</small>
+          </div>
+          <div class="resultados">
+            <h4>RESULTADOS DEL ANÁLISIS</h4>
+            <ul class="resultados-list">
+              <li><span>Modelo Detectado</span><strong>{{ ins.modeloDetectado }}</strong></li>
+              <li><span>Confianza</span><strong class="text-ok">{{ ins.confianzaModelo }}%</strong></li>
+              <li><span>Daños Detectados</span><strong class="text-warn">{{ ins.danosDetectados }} áreas</strong></li>
+              <li><span>Severidad</span><strong [class]="severidadClass(ins.severidad)">{{ ins.severidad }}</strong></li>
+              <li><span>Costo Estimado Reparación</span><strong class="text-danger">{{ ins.costoReparacion | currency:'USD':'symbol':'1.0-0' }}</strong></li>
+            </ul>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>DETALLE DE DAÑOS DETECTADOS</nb-card-header>
+      <nb-card-body>
+        <table class="danos-table">
+          <thead>
+            <tr><th>Zona</th><th>Tipo Daño</th><th>Severidad</th><th>Confianza</th><th>Reparación</th></tr>
+          </thead>
+          <tbody>
+            @for (d of ins.danos; track d.zona) {
+              <tr>
+                <td>{{ d.zona }}</td>
+                <td>{{ d.tipo }}</td>
+                <td [class]="severidadClass(d.severidad)">{{ d.severidad }}</td>
+                <td>{{ d.confianza }}%</td>
+                <td>{{ d.reparacion | currency:'USD':'symbol':'1.0-0' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>OCR — EXTRACCIÓN DE DOCUMENTOS</nb-card-header>
+      <nb-card-body>
+        <div class="ocr-grid">
+          <div class="foto-placeholder doc">
+            <nb-icon icon="file-text-outline" />
+            <span>[Documento Escaneado]</span>
+            <small>Título de Propiedad</small>
+          </div>
+          <div class="ocr-datos">
+            <h4>Datos Extraídos</h4>
+            <ul class="resultados-list">
+              <li><span>Propietario</span><strong>{{ ins.ocr.propietario }}</strong></li>
+              <li><span>VIN</span><strong>{{ ins.ocr.vin }}</strong></li>
+              <li><span>Estado</span><strong>{{ ins.ocr.estado }}</strong></li>
+              <li><span>Fecha Emisión</span><strong>{{ ins.ocr.fechaEmision }}</strong></li>
+              <li><span>Tipo</span><strong>{{ ins.ocr.tipoTitulo }}</strong></li>
+            </ul>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>INSPECCIONES RECIENTES</nb-card-header>
+      <nb-card-body>
+        <ul class="recientes-list">
+          @for (r of recientes(); track r.fecha + r.vehiculo) {
+            <li>
+              <strong>{{ r.vehiculo }}</strong>
+              <span>{{ r.resultado }}</span>
+              <span class="fecha">{{ r.fecha }}</span>
+            </li>
+          }
+        </ul>
+      </nb-card-body>
+    </nb-card>
+    }
+  }
+</div>

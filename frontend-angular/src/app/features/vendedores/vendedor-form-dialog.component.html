@@ -1,0 +1,57 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">{{ title }}</h3>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field">
+      <label>Nombre Completo</label>
+      <input nbInput fullWidth formControlName="nombreCompleto" placeholder="Roberto Flores" />
+    </div>
+    <div class="form-field">
+      <label>Correo Electronico</label>
+      <input nbInput fullWidth type="email" formControlName="email" placeholder="vendedor@auto.com" />
+    </div>
+    <div class="form-field">
+      <label>Telefono</label>
+      <input nbInput fullWidth formControlName="telefono" placeholder="+505 8812-1111" />
+    </div>
+    <div class="form-field">
+      <label>Cedula</label>
+      <input nbInput fullWidth formControlName="cedula" placeholder="001-120590-0001A" />
+    </div>
+    <div class="form-field">
+      <label>Zona Asignada</label>
+      <input nbInput fullWidth formControlName="zonaAsignada" placeholder="Managua Norte" />
+    </div>
+    <div class="form-field">
+      <label>Meta Mensual</label>
+      <input nbInput fullWidth type="number" formControlName="metaMensual" placeholder="50000" />
+    </div>
+    <div class="form-field">
+      <label>Fecha Ingreso</label>
+      <input nbInput fullWidth type="date" formControlName="fechaIngreso" />
+    </div>
+    <div class="form-field">
+      <label>Comision %</label>
+      <input nbInput fullWidth type="number" step="0.1" formControlName="comisionPorcentaje" />
+    </div>
+  </form>
+
+  <div class="dialog-actions">
+    @if (isView) {
+      <button type="button" nbButton status="basic" (click)="cancel()">Cerrar</button>
+    } @else {
+      <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+      <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+        @if (saving()) {
+          <nb-spinner size="tiny" status="control" />
+        } @else {
+          GUARDAR VENDEDOR
+        }
+      </button>
+    }
+  </div>
+</div>

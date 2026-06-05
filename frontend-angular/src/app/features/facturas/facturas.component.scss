@@ -1,0 +1,141 @@
+.facturas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-basic-color);
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-hint-color);
+}
+
+.btn-nuevo {
+  font-weight: 600;
+  text-transform: none;
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.kpi-card {
+  background: var(--background-basic-color-2);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kpi-label {
+  font-size: 0.85rem;
+  color: var(--text-hint-color);
+}
+
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.kpi-total { border-color: #3366ff; .kpi-value { color: #5b7cff; } }
+.kpi-borrador { border-color: #ffaa00; .kpi-value { color: #ffaa00; } }
+.kpi-emitidas { border-color: #00d68f; .kpi-value { color: #00d68f; } }
+.kpi-pagadas { border-color: #a855f7; .kpi-value { color: #c084fc; } }
+
+.table-card {
+  margin-bottom: 0;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.facturas-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-basic-color-3);
+  }
+
+  th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-hint-color);
+    font-weight: 600;
+  }
+}
+
+.col-numero {
+  font-family: ui-monospace, monospace;
+}
+
+.col-monto {
+  color: #00d68f;
+  font-weight: 600;
+}
+
+.col-actions {
+  white-space: nowrap;
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.btn-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.estado-borrador { color: #ffaa00; font-weight: 600; }
+.estado-emitida { color: #5b7cff; font-weight: 600; }
+.estado-pagada { color: #00d68f; font-weight: 600; }
+.estado-anulada { color: #ff3d71; font-weight: 600; }
+
+.empty-row {
+  text-align: center;
+  color: var(--text-hint-color);
+  padding: 2rem !important;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,178 @@
+<div class="pedidos-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ pageTitle() }}</h1>
+      <p class="page-sub">{{ pageSubtitle() }}</p>
+    </div>
+    @if (canManage()) {
+      <button type="button" nbButton status="warning" (click)="openCreate()">
+        <nb-icon icon="plus-outline" />
+        Nuevo Pedido
+      </button>
+    }
+  </header>
+
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-pendiente">
+      <span class="kpi-label">Pendientes</span>
+      <span class="kpi-value">{{ stats().pendientes }}</span>
+    </div>
+    <div class="kpi-card kpi-proceso">
+      <span class="kpi-label">En proceso / aduana</span>
+      <span class="kpi-value">{{ stats().enProceso }}</span>
+    </div>
+    <div class="kpi-card kpi-completado">
+      <span class="kpi-label">Completados</span>
+      <span class="kpi-value">{{ stats().completados }}</span>
+    </div>
+    <div class="kpi-card kpi-cancelado">
+      <span class="kpi-label">Cancelados</span>
+      <span class="kpi-value">{{ stats().cancelados }}</span>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <input
+      nbInput
+      fullWidth
+      class="search-input"
+      placeholder="Buscar pedido, cliente o vehículo..."
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+    <nb-select placeholder="Estado" [selected]="filterEstado()" (selectedChange)="filterEstado.set($event)">
+      <nb-option value="TODOS">Todos</nb-option>
+      <nb-option value="PENDIENTE">Pendiente</nb-option>
+      <nb-option value="CONFIRMADO">En Proceso</nb-option>
+      <nb-option value="EN_IMPORTACION">En Aduana</nb-option>
+      <nb-option value="ENTREGADO">Completado</nb-option>
+      <nb-option value="CANCELADO">Cancelado</nb-option>
+    </nb-select>
+  </div>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <nb-card class="table-card">
+    <nb-card-body>
+      @if (loading()) {
+        <div class="loading-center">
+          <nb-spinner status="primary" size="large" />
+        </div>
+      } @else {
+        <div class="table-wrap">
+          <table class="pedidos-table">
+            <thead>
+              <tr>
+                <th># Pedido</th>
+                @if (!isCliente()) {
+                  <th>Cliente</th>
+                }
+                <th>Vehículo</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of filtered(); track p.id) {
+                <tr [class.row-selected]="selected()?.id === p.id">
+                  <td class="col-codigo">{{ codigoDisplay(p) }}</td>
+                  @if (!isCliente()) {
+                    <td>{{ p.clienteNombre }}</td>
+                  }
+                  <td>{{ p.vehiculoTitulo }}</td>
+                  <td>{{ p.total | currency:'USD':'symbol':'1.0-0' }}</td>
+                  <td>
+                    <span class="estado-pill" [class]="'estado-' + p.estado.toLowerCase()">
+                      {{ estadoLabel(p.estado) }}
+                    </span>
+                  </td>
+                  <td>{{ p.creadoEn | date:'yyyy-MM-dd' }}</td>
+                  <td>
+                    <button type="button" nbButton size="small" status="info" (click)="ver(p)">Ver</button>
+                    @if (auth.hasRole('VENDEDOR') && !p.vendedorUsername) {
+                      <button type="button" nbButton size="small" status="success" (click)="tomarPedido(p)">
+                        Tomar
+                      </button>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td [attr.colspan]="isCliente() ? 6 : 7" class="empty-row">No hay pedidos registrados.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </nb-card-body>
+  </nb-card>
+
+  @if (selected(); as p) {
+    <nb-card class="detalle-card">
+      <nb-card-header>
+        <span>Detalle del Pedido {{ codigoDisplay(p) }}</span>
+        <button type="button" nbButton size="tiny" status="basic" ghost (click)="selected.set(null)">Cerrar</button>
+      </nb-card-header>
+      <nb-card-body>
+        <div class="detalle-layout">
+          <div class="detalle-datos">
+            <dl class="detalle-list">
+              <div><dt>Cliente</dt><dd>{{ p.clienteNombre }}</dd></div>
+              <div><dt>Vehículo</dt><dd>{{ p.vehiculoTitulo }}</dd></div>
+              <div><dt>VIN</dt><dd>{{ p.vehiculoVin || '—' }}</dd></div>
+              <div><dt>Precio base</dt><dd>{{ p.precioBase | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+              <div><dt>Impuestos</dt><dd>{{ p.impuestos | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+              <div><dt>Envío</dt><dd>{{ p.envio | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+              <div class="detalle-total"><dt>Total</dt><dd>{{ p.total | currency:'USD':'symbol':'1.0-0' }}</dd></div>
+            </dl>
+            @if (p.notas) {
+              <p class="detalle-notas"><strong>Notas:</strong> {{ p.notas }}</p>
+            }
+            @if (p.vendedorUsername) {
+              <p class="detalle-notas muted">Vendedor: {{ p.vendedorUsername }}</p>
+            }
+          </div>
+          <div class="detalle-img">
+            @if (mostrarImagen(p)) {
+              <img
+                [src]="p.vehiculoImagenUrl!"
+                [alt]="p.vehiculoTitulo"
+                (error)="onImagenError(p.id)"
+              />
+            } @else {
+              <nb-icon icon="car-outline" />
+            }
+          </div>
+        </div>
+        @if (canManage()) {
+          <div class="detalle-actions">
+            <button
+              type="button"
+              nbButton
+              status="danger"
+              ghost
+              (click)="cerrarPorMotivo(p)"
+            >
+              Cerrar (motivo)
+            </button>
+            @if (p.estado === 'PENDIENTE') {
+              <button type="button" nbButton status="success" (click)="confirmar(p.id)">Aprobar</button>
+              <button type="button" nbButton status="danger" ghost (click)="cancelar(p.id)">Cancelar</button>
+            }
+            @if (p.estado === 'CONFIRMADO') {
+              <button type="button" nbButton status="primary" (click)="iniciarImportacion(p.id)">Iniciar importación</button>
+            }
+            @if (p.estado === 'EN_IMPORTACION') {
+              <button type="button" nbButton status="success" (click)="entregar(p.id)">Completar entrega</button>
+            }
+          </div>
+        }
+      </nb-card-body>
+    </nb-card>
+  }
+</div>

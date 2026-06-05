@@ -1,0 +1,100 @@
+<div class="importaciones-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Seguimiento de Importaciones</h1>
+      <p class="page-sub">Seguimiento aduanero desde MS-1 · logística avanzada en MS-2</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    <div class="embarques-list">
+      @for (e of embarques(); track e.id) {
+        <nb-card class="embarque-card">
+          <nb-card-body>
+            <div class="embarque-head">
+              <div>
+                <span class="embarque-codigo">EMBARQUE #{{ e.codigo }}</span>
+                <h3 class="embarque-vehiculo">{{ e.vehiculo }}</h3>
+                <p class="embarque-ref">{{ e.referencia }}</p>
+                <p class="embarque-ruta">
+                  <nb-icon icon="navigation-2-outline" />
+                  {{ e.origen }} &gt; {{ e.destino }}
+                  <span class="naviera">Naviera: {{ e.naviera }}</span>
+                </p>
+              </div>
+              <span class="estado-badge" [class]="badgeClass(e.estadoBadge)">{{ badgeLabel(e.estadoBadge) }}</span>
+            </div>
+
+            <div class="timeline">
+              @for (etapa of e.etapas; track etapa; let i = $index) {
+                <div
+                  class="timeline-step"
+                  [class.done]="i < etapaIndex(e.etapas, e.etapaActual)"
+                  [class.active]="etapa === e.etapaActual"
+                >
+                  <div class="step-node"></div>
+                  <span class="step-label">{{ etapaLabels[etapa] }}</span>
+                </div>
+                @if (i < e.etapas.length - 1) {
+                  <div
+                    class="timeline-line"
+                    [class.done]="i < etapaIndex(e.etapas, e.etapaActual)"
+                  ></div>
+                }
+              }
+            </div>
+          </nb-card-body>
+        </nb-card>
+      }
+    </div>
+
+    <nb-card class="resumen-card">
+      <nb-card-header>Resumen de Importaciones Activas</nb-card-header>
+      <nb-card-body>
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-transito">
+            <span class="kpi-value">{{ resumen().enTransito }}</span>
+            <span class="kpi-label">En Tránsito</span>
+          </div>
+          <div class="kpi-card kpi-aduana">
+            <span class="kpi-value">{{ resumen().enAduana }}</span>
+            <span class="kpi-label">En Aduana</span>
+          </div>
+          <div class="kpi-card kpi-pago">
+            <span class="kpi-value">{{ resumen().pendientePago }}</span>
+            <span class="kpi-label">Pendiente Pago</span>
+          </div>
+          <div class="kpi-card kpi-completadas">
+            <span class="kpi-value">{{ resumen().completadasMes }}</span>
+            <span class="kpi-label">Completadas (Mes)</span>
+          </div>
+        </div>
+
+        <h4 class="section-title">Próximas Llegadas</h4>
+        <table class="proximas-table">
+          <thead>
+            <tr><th>ID</th><th>Vehículo</th><th>Fecha</th><th>Countdown</th></tr>
+          </thead>
+          <tbody>
+            @for (p of proximas(); track p.codigo) {
+              <tr>
+                <td class="col-id">{{ p.codigo }}</td>
+                <td>{{ p.vehiculo }}</td>
+                <td>{{ p.fecha }}</td>
+                <td class="countdown">{{ p.diasRestantes }} días</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </nb-card-body>
+    </nb-card>
+
+    <div class="map-placeholder">
+      <nb-icon icon="map-outline" />
+      <h3>MAPA DE RASTREO EN TIEMPO REAL</h3>
+      <p>(Integración con API de rastreo naviero — MS-2)</p>
+    </div>
+  }
+</div>

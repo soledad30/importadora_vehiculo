@@ -1,0 +1,47 @@
+<nb-layout>
+  <nb-layout-header fixed>
+    <div class="header-bar">
+      <div class="header-title">
+        <strong>Importadora de Vehículos</strong>
+        @if (user(); as u) {
+          <span class="header-user">{{ u.username }} · {{ u.rol }}</span>
+        }
+      </div>
+      <div class="header-actions">
+        <button
+          type="button"
+          nbButton
+          ghost
+          size="small"
+          class="theme-toggle"
+          [title]="themeToggleLabel()"
+          [attr.aria-label]="themeToggleLabel()"
+          (click)="toggleTheme()"
+        >
+          <nb-icon [icon]="themeIcon()" />
+          <span class="sr-only">{{ themeToggleLabel() }}</span>
+        </button>
+        <button type="button" nbButton status="danger" size="small" (click)="logout()">
+          <nb-icon icon="log-out-outline" />
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </nb-layout-header>
+
+  <nb-sidebar tag="menu-sidebar" state="expanded" responsive>
+    <div class="brand">
+      <span class="brand-icon">IV</span>
+      <div>
+        <strong>Importadora</strong>
+        <small>Vehículos 2026</small>
+      </div>
+    </div>
+
+    <nb-menu [items]="menuItems()" />
+  </nb-sidebar>
+
+  <nb-layout-column class="content-column">
+    <router-outlet />
+  </nb-layout-column>
+</nb-layout>

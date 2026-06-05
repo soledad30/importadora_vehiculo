@@ -1,0 +1,79 @@
+<div class="notif-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Centro de Notificaciones</h1>
+      <p class="page-sub">{{ subtitle() }}</p>
+      @if (noLeidas() > 0) {
+        <p class="badge-no-leidas">{{ noLeidas() }} sin leer</p>
+      }
+    </div>
+    <div class="header-actions">
+      @if (noLeidas() > 0) {
+        <button type="button" nbButton status="basic" (click)="marcarTodas()">
+          Marcar todas leídas
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="tabs-row">
+    @for (t of tabs(); track t.id) {
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="filtro() === t.id"
+        (click)="setFiltro(t.id)"
+      >
+        {{ t.label }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    <div class="notif-list">
+      @for (n of filtered(); track n.id) {
+        <article
+          class="notif-card"
+          [class]="nivelClass(n.nivel)"
+          [class.leida]="n.leida"
+          [class.clickable]="tieneDestino(n)"
+          (click)="abrir(n)"
+        >
+          <div class="notif-card-head">
+            <span class="notif-cat">{{ categoriaLabel(n.categoria) }}</span>
+            @if (!n.leida) {
+              <span class="notif-dot" aria-label="No leída"></span>
+            }
+          </div>
+          <div class="notif-body">
+            <nb-icon [icon]="icono(n)" />
+            <div>
+              <h3 class="notif-titulo">{{ n.titulo }}</h3>
+              <p class="notif-mensaje">{{ n.mensaje }}</p>
+              @if (n.flujo) {
+                <p class="notif-flujo">Flujo: {{ n.flujo }}</p>
+              }
+              <time class="notif-fecha">{{ n.creadoEn | date:'dd/MM/yyyy HH:mm' }}</time>
+              @if (tieneDestino(n)) {
+                <span class="notif-link-hint">Clic para abrir</span>
+              }
+            </div>
+          </div>
+        </article>
+      } @empty {
+        <nb-card>
+          <nb-card-body class="empty-state">
+            <nb-icon icon="bell-off-outline" />
+            <p>No hay notificaciones en esta categoría.</p>
+          </nb-card-body>
+        </nb-card>
+      }
+    </div>
+  }
+</div>

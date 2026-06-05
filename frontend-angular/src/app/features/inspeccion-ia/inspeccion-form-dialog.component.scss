@@ -1,0 +1,62 @@
+.dialog-shell {
+  padding: 1.5rem 1.75rem 1.25rem;
+  min-width: min(480px, 92vw);
+  max-width: 560px;
+  background: var(--background-basic-color-2, #222b45);
+  color: var(--text-basic-color, #edf1f7);
+  border-radius: 12px;
+  border: 2px solid #a855f7;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.dialog-title {
+  margin: 0 0 0.35rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-basic-color, #edf1f7);
+}
+
+.dialog-hint {
+  margin: 0 0 1.25rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-hint-color, #8f9bb3);
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.8rem;
+    color: var(--text-hint-color, #8f9bb3);
+  }
+
+  input[type='file'] {
+    font-size: 0.85rem;
+    color: var(--text-basic-color, #edf1f7);
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-save {
+  width: 100%;
+  max-width: 280px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}

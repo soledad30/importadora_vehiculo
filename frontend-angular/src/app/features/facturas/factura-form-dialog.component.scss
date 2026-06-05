@@ -1,0 +1,111 @@
+.dialog-shell {
+  padding: 1.5rem 1.75rem 1.25rem;
+  min-width: min(520px, 92vw);
+  max-width: 640px;
+  background: var(--background-basic-color-2, #222b45);
+  color: var(--text-basic-color, #edf1f7);
+  border-radius: 12px;
+  border: 2px solid #5b7cff;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+}
+
+.dialog-title {
+  margin: 0 0 1.25rem;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-basic-color, #edf1f7);
+}
+
+.dialog-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  label {
+    font-size: 0.8rem;
+    color: var(--text-hint-color, #8f9bb3);
+  }
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-save {
+  width: 100%;
+  max-width: 280px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.numero-auto {
+  .numero-preview {
+    font-family: ui-monospace, monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #5b7cff;
+    padding: 0.55rem 0.75rem;
+    background: rgba(91, 124, 255, 0.1);
+    border: 1px solid rgba(91, 124, 255, 0.35);
+    border-radius: 6px;
+  }
+
+  .numero-hint {
+    font-size: 0.75rem;
+    color: var(--text-hint-color, #8f9bb3);
+  }
+}
+
+.pedido-preview {
+  background: rgba(91, 124, 255, 0.08);
+  border: 1px solid rgba(91, 124, 255, 0.35);
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+
+.preview-title {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5b7cff;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 1rem;
+  font-size: 0.82rem;
+  color: var(--text-basic-color, #edf1f7);
+}
+
+.preview-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 560px) {
+  .dialog-form {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}

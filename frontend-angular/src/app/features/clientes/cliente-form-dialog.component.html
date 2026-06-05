@@ -1,0 +1,61 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">{{ title }}</h3>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field">
+      <label>Nombre Completo</label>
+      <input nbInput fullWidth formControlName="nombreCompleto" placeholder="Juan Perez" />
+    </div>
+    <div class="form-field">
+      <label>Correo Electronico</label>
+      <input nbInput fullWidth type="email" formControlName="email" placeholder="cliente@email.com" />
+    </div>
+    <div class="form-field">
+      <label>Telefono</label>
+      <input nbInput fullWidth formControlName="telefono" placeholder="+505 8800-0000" />
+    </div>
+    <div class="form-field">
+      <label>Cedula / RUC</label>
+      <input nbInput fullWidth formControlName="cedulaRuc" placeholder="001-120590-0001A" />
+    </div>
+    <div class="form-field">
+      <label>Direccion</label>
+      <input nbInput fullWidth formControlName="direccion" placeholder="Managua, Nicaragua" />
+    </div>
+    <div class="form-field">
+      <label>Ciudad</label>
+      <input nbInput fullWidth formControlName="ciudad" placeholder="Managua" />
+    </div>
+    <div class="form-field">
+      <label>Tipo de Cliente</label>
+      <nb-select formControlName="tipoCliente" fullWidth>
+        @for (t of tipos; track t.value) {
+          <nb-option [value]="t.value">{{ t.label }}</nb-option>
+        }
+      </nb-select>
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Notas</label>
+      <input nbInput fullWidth formControlName="notas" placeholder="Cliente referido" />
+    </div>
+  </form>
+
+  <div class="dialog-actions">
+    @if (isView) {
+      <button type="button" nbButton status="basic" (click)="cancel()">Cerrar</button>
+    } @else {
+      <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+      <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+        @if (saving()) {
+          <nb-spinner size="tiny" status="control" />
+        } @else {
+          GUARDAR CLIENTE
+        }
+      </button>
+    }
+  </div>
+</div>

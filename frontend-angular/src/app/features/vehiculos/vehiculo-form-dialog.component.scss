@@ -1,0 +1,23 @@
+@import '../clientes/cliente-form-dialog.component.scss';
+
+.dialog-form {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+@media (max-width: 720px) {
+  .dialog-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  color: var(--text-hint-color);
+  margin-top: 0.15rem;
+}

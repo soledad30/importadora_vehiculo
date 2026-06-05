@@ -1,0 +1,27 @@
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+
+# Env
+.env
+!.env.example
+
+# Node (futuros frontends)
+node_modules/
+dist/
+.expo/
+.angular/
+
+# OS
+.DS_Store
+Thumbs.db
