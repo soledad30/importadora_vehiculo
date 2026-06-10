@@ -12,6 +12,7 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificacionesBadgeService } from '../../core/services/notificaciones-badge.service';
 import { destinoNotificacion } from '../../core/utils/notificacion-nav.util';
+import { destinoPlanificarImportacion } from '../../core/utils/notificacion-prediccion.util';
 import { CategoriaNotificacion, NotificacionItem, NivelNotificacion } from '../../core/models';
 
 type FiltroTab = 'TODAS' | CategoriaNotificacion;
@@ -136,6 +137,34 @@ export class NotificacionesComponent implements OnInit, OnDestroy {
     const destino = destinoNotificacion(n, this.auth.rol());
     const navegar = () => {
       if (!destino) return;
+      void this.router.navigate([destino.path], { queryParams: destino.queryParams });
+    };
+
+    if (n.leida) {
+      navegar();
+      return;
+    }
+
+    this.api.marcarNotificacionLeida(n.id).subscribe({
+      next: (updated) => {
+        this.items.update((arr) => arr.map((x) => (x.id === updated.id ? updated : x)));
+        this.badge.decrementar();
+        navegar();
+      },
+      error: () => navegar()
+    });
+  }
+
+  esPrediccion(n: NotificacionItem): boolean {
+    return n.categoria === 'PREDICCION' && this.auth.hasRole('ADMIN');
+  }
+
+  planificarImportacion(n: NotificacionItem, event: Event): void {
+    event.stopPropagation();
+    const destino = destinoPlanificarImportacion(n, this.auth.rol());
+    if (!destino) return;
+
+    const navegar = () => {
       void this.router.navigate([destino.path], { queryParams: destino.queryParams });
     };
 

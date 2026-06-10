@@ -13,9 +13,11 @@ import {
   NbSelectModule,
   NbSpinnerModule
 } from '@nebular/theme';
+import { logoMarcaVehiculo, nombresMarcasVehiculo } from '../../core/constants/marcas-vehiculo';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Vehiculo } from '../../core/models';
+import { CompraOrigen, Vehiculo } from '../../core/models';
+import { CompraOrigenDialogComponent } from './compra-origen-dialog.component';
 import {
   VehiculoDialogContext,
   VehiculoFormDialogComponent
@@ -46,11 +48,14 @@ export class VehiculosComponent implements OnInit {
   readonly auth = inject(AuthService);
 
   readonly items = signal<Vehiculo[]>([]);
+  readonly comprasPorVehiculo = signal<Record<number, CompraOrigen>>({});
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly search = signal('');
   readonly showFilters = signal(false);
   readonly filterEstado = signal<string>('TODOS');
+  readonly filterMarca = signal<string>('TODAS');
+  readonly marcasDisponibles = nombresMarcasVehiculo();
   readonly imagenFallida = signal<Set<number>>(new Set());
   readonly focusedId = signal<number | null>(null);
 
@@ -63,8 +68,10 @@ export class VehiculosComponent implements OnInit {
   readonly filtered = computed(() => {
     const q = this.search().trim().toLowerCase();
     const estado = this.filterEstado();
+    const marca = this.filterMarca();
     return this.items().filter((v) => {
       if (estado !== 'TODOS' && v.estado !== estado) return false;
+      if (marca !== 'TODAS' && v.marca !== marca) return false;
       if (!q) return true;
       const haystack = [v.vin, v.marca, v.modelo, v.color, String(v.anio), v.estado]
         .join(' ')
@@ -85,6 +92,8 @@ export class VehiculosComponent implements OnInit {
         this.items.set(data);
         this.imagenFallida.set(new Set());
         this.loading.set(false);
+        this.aplicarFocoDesdeRuta();
+        if (this.canEdit()) this.loadCompras();
       },
       error: (err) => {
         this.loading.set(false);
@@ -101,12 +110,45 @@ export class VehiculosComponent implements OnInit {
     this.openDialog({ mode: 'edit', vehiculo: v });
   }
 
+  openCompraOrigen(v: Vehiculo): void {
+    if (this.comprasPorVehiculo()[v.id]) {
+      this.error.set('Este vehículo ya tiene compra en origen registrada');
+      return;
+    }
+    this.dialog
+      .open(CompraOrigenDialogComponent, {
+        context: { vehiculo: v },
+        closeOnBackdropClick: false,
+        dialogClass: 'cliente-dialog-panel'
+      })
+      .onClose.subscribe((saved) => {
+        if (saved) this.load();
+      });
+  }
+
+  compraDe(v: Vehiculo): CompraOrigen | undefined {
+    return this.comprasPorVehiculo()[v.id];
+  }
+
+  labelProveedor(tipo: string): string {
+    const map: Record<string, string> = {
+      SUBASTA: 'Subasta',
+      DEALER: 'Dealer',
+      PRIVADO: 'Privado'
+    };
+    return map[tipo] ?? tipo;
+  }
+
   toggleFilters(): void {
     this.showFilters.update((x) => !x);
   }
 
   tituloVehiculo(v: Vehiculo): string {
     return `${v.marca} ${v.modelo} ${v.anio}`;
+  }
+
+  logoMarca(marca: string): string | null {
+    return logoMarcaVehiculo(marca);
   }
 
   mostrarImagen(v: Vehiculo): boolean {
@@ -138,6 +180,17 @@ export class VehiculosComponent implements OnInit {
     this.api.deleteVehiculo(v.id).subscribe({
       next: () => this.load(),
       error: (err) => this.error.set(err?.error?.detail ?? 'No se pudo eliminar')
+    });
+  }
+
+  private loadCompras(): void {
+    this.api.getComprasOrigen().subscribe({
+      next: (compras) => {
+        const map: Record<number, CompraOrigen> = {};
+        for (const c of compras) map[c.vehiculoId] = c;
+        this.comprasPorVehiculo.set(map);
+      },
+      error: () => this.comprasPorVehiculo.set({})
     });
   }
 

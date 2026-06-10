@@ -1,0 +1,27 @@
+<div class="marca-picker" [class.marca-picker--compact]="compact">
+  @for (marca of marcas; track marca.id) {
+    <button
+      type="button"
+      class="marca-card"
+      [class.selected]="selected() === marca.nombre"
+      [disabled]="disabled()"
+      [attr.aria-pressed]="selected() === marca.nombre"
+      [attr.aria-label]="marca.nombre"
+      (click)="selectMarca(marca.nombre)"
+    >
+      <span class="marca-logo">
+        @if (!logoFailed(marca.logoSlug)) {
+          <img
+            [src]="logoMarca(marca.nombre)!"
+            [alt]="marca.nombre"
+            loading="lazy"
+            (error)="onLogoError(marca.logoSlug)"
+          />
+        } @else {
+          <span class="marca-fallback">{{ marca.nombre.charAt(0) }}</span>
+        }
+      </span>
+      <span class="marca-nombre">{{ marca.nombre }}</span>
+    </button>
+  }
+</div>

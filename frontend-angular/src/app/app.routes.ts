@@ -50,6 +50,20 @@ export const routes: Routes = [
           import('./features/notificaciones/notificaciones.component').then((m) => m.NotificacionesComponent)
       },
       {
+        path: 'mi-cuenta',
+        canActivate: [roleGuard('ADMIN', 'VENDEDOR', 'CLIENTE')],
+        loadComponent: () =>
+          import('./features/mi-cuenta/mi-cuenta.component').then((m) => m.MiCuentaComponent)
+      },
+      {
+        path: 'configuraciones',
+        canActivate: [roleGuard('ADMIN', 'VENDEDOR', 'CLIENTE')],
+        loadComponent: () =>
+          import('./features/configuraciones/configuraciones.component').then(
+            (m) => m.ConfiguracionesComponent
+          )
+      },
+      {
         path: 'cotizador',
         canActivate: [roleGuard('ADMIN', 'VENDEDOR')],
         loadComponent: () =>
@@ -66,6 +80,12 @@ export const routes: Routes = [
         canActivate: [roleGuard('ADMIN')],
         loadComponent: () =>
           import('./features/importaciones/importaciones.component').then((m) => m.ImportacionesComponent)
+      },
+      {
+        path: 'lotes',
+        canActivate: [roleGuard('ADMIN', 'VENDEDOR')],
+        loadComponent: () =>
+          import('./features/lotes/lotes.component').then((m) => m.LotesComponent)
       },
       {
         path: 'documentos',

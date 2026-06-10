@@ -122,6 +122,12 @@
   color: var(--text-hint-color);
 }
 
+.col-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 .estado-pill {
   font-weight: 600;
   font-size: 0.8rem;
@@ -234,6 +240,11 @@
   &.muted {
     color: var(--text-hint-color);
   }
+
+  &.detalle-sin-vendedor {
+    color: #ffaa00;
+    font-weight: 600;
+  }
 }
 
 .detalle-actions {
@@ -243,6 +254,110 @@
   margin-top: 1.25rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border-basic-color-3);
+}
+
+.flujo-guia {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: rgba(91, 124, 255, 0.06);
+  border: 1px solid rgba(91, 124, 255, 0.2);
+}
+
+.flujo-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.flujo-step {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-hint-color);
+  border: 1px solid var(--border-basic-color-3);
+
+  &.done {
+    color: #00d68f;
+    border-color: rgba(0, 214, 143, 0.35);
+  }
+
+  &.current {
+    color: #5b7cff;
+    border-color: rgba(91, 124, 255, 0.55);
+    background: rgba(91, 124, 255, 0.12);
+  }
+}
+
+.flujo-hint {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-basic-color);
+}
+
+.integracion-nota {
+  margin: 0.65rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-hint-color);
+}
+
+.checklist-panel {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: rgba(0, 214, 143, 0.06);
+  border: 1px solid rgba(0, 214, 143, 0.2);
+
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  li.ok {
+    color: #00d68f;
+  }
+}
+
+.flujo-resultado {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  background: rgba(255, 170, 0, 0.06);
+  border: 1px solid rgba(255, 170, 0, 0.25);
+
+  h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.92rem;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.8rem;
+    line-height: 1.45;
+  }
+
+  .paso-ok {
+    color: #00d68f;
+  }
+
+  .paso-warn,
+  .paso-skip {
+    color: #ffaa00;
+  }
+
+  .paso-error {
+    color: #ff3d71;
+  }
 }
 
 @media (max-width: 900px) {

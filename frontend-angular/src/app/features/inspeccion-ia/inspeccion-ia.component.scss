@@ -10,10 +10,46 @@
 .activa-grid, .ocr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 .foto-placeholder {
   border: 2px dashed var(--border-basic-color-4); border-radius: 10px;
-  padding: 2.5rem 1.5rem; text-align: center; color: var(--text-hint-color);
+  padding: 1rem; text-align: center; color: var(--text-hint-color);
   display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
   nb-icon { font-size: 2.5rem; }
   &.doc nb-icon { color: #5b7cff; }
+}
+
+.foto-inspeccion {
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.fotos-360-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  width: 100%;
+
+  figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  figcaption {
+    font-size: 0.7rem;
+    color: var(--text-hint-color);
+  }
+}
+
+.modo-tag {
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.validacion-tag {
+  color: #00d68f;
+  font-weight: 600;
 }
 
 .resultados h4, .ocr-datos h4 { margin: 0 0 0.75rem; font-size: 0.85rem; letter-spacing: 0.04em; color: var(--text-hint-color); }

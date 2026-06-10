@@ -160,6 +160,13 @@
   font-weight: 600;
 }
 
+.notif-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
 .empty-state {
   text-align: center;
   padding: 2.5rem 1rem;

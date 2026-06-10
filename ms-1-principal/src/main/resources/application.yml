@@ -1,6 +1,10 @@
 spring:
   application:
     name: ms-1-principal
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:importadora_vehiculos}
     username: ${POSTGRES_USER:postgres}
@@ -33,9 +37,17 @@ springdoc:
     path: /swagger-ui.html
 
 app:
+  uploads:
+    vehiculos-dir: ${VEHICULOS_UPLOAD_DIR:uploads/vehiculos}
   jwt:
     secret: ${JWT_SECRET:importadora-vehiculos-jwt-secret-key-2026-min-32-chars}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  ms2:
+    base-url: ${MS2_BASE_URL:http://localhost:8081}
+    enabled: ${MS2_ENABLED:true}
+  ms3:
+    base-url: ${MS3_BASE_URL:http://localhost:8082}
+    enabled: ${MS3_ENABLED:true}
   google:
     # Crear credencial OAuth "Web" en Google Cloud Console y pegar el Client ID
     client-id: ${GOOGLE_CLIENT_ID:}

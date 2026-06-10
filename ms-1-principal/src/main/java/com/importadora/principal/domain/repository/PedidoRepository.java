@@ -65,4 +65,11 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     @Query("SELECT COUNT(p) FROM Pedido p WHERE p.vendedor.id = :usuarioId AND p.estado = :estado")
     long countByVendedorUsuarioIdAndEstado(@Param("usuarioId") Long usuarioId, @Param("estado") EstadoPedido estado);
+
+    @Query("""
+            SELECT COUNT(p) FROM Pedido p
+            WHERE p.estado = :estado
+            AND NOT EXISTS (SELECT i FROM Importacion i WHERE i.pedido = p)
+            """)
+    long countByEstadoAndSinImportacion(@Param("estado") EstadoPedido estado);
 }

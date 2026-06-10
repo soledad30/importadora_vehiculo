@@ -1,7 +1,7 @@
 .dialog-shell {
   padding: 1.5rem 1.75rem 1.25rem;
-  min-width: min(480px, 92vw);
-  max-width: 560px;
+  min-width: min(520px, 92vw);
+  max-width: 640px;
   background: var(--background-basic-color-2, #222b45);
   color: var(--text-basic-color, #edf1f7);
   border-radius: 12px;
@@ -44,6 +44,52 @@
     font-size: 0.85rem;
     color: var(--text-basic-color, #edf1f7);
   }
+
+  .field-hint {
+    font-size: 0.75rem;
+    color: var(--text-hint-color, #8f9bb3);
+  }
+}
+
+.fotos-360-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.fotos-360-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-basic-color, #edf1f7);
+}
+
+.fotos-360-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.foto-vista .foto-preview {
+  margin-top: 0.35rem;
+  width: 100%;
+  max-height: 88px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-basic-color-3, #2e3a59);
+}
+
+.dialog-ok {
+  color: #00d68f;
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+  text-align: center;
+}
+
+.dialog-error {
+  color: #ff708d;
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
 }
 
 .dialog-actions {

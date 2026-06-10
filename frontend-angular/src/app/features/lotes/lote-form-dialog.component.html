@@ -1,0 +1,58 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">Nuevo lote de importación</h3>
+  <p class="dialog-sub">Registre un contenedor para agrupar vehículos en tránsito marítimo.</p>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  <form [formGroup]="form" class="dialog-form">
+    <div class="form-field form-field-wide">
+      <label>Número de contenedor *</label>
+      <input nbInput fullWidth formControlName="numeroContenedor" placeholder="MSCU8798123" />
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Naviera *</label>
+      <nb-select formControlName="naviera" fullWidth>
+        @for (n of navieras; track n) {
+          <nb-option [value]="n">{{ n }}</nb-option>
+        }
+      </nb-select>
+    </div>
+    <div class="form-field">
+      <label>Puerto origen *</label>
+      <nb-select formControlName="puertoOrigen" fullWidth>
+        @for (p of puertosOrigen; track p.value) {
+          <nb-option [value]="p.value">{{ p.label }}</nb-option>
+        }
+      </nb-select>
+    </div>
+    <div class="form-field">
+      <label>Puerto destino *</label>
+      <nb-select formControlName="puertoDestino" fullWidth>
+        @for (p of puertosDestino; track p.value) {
+          <nb-option [value]="p.value">{{ p.label }}</nb-option>
+        }
+      </nb-select>
+    </div>
+    <div class="form-field">
+      <label>Fecha embarque</label>
+      <input nbInput fullWidth type="date" formControlName="fechaEmbarque" />
+    </div>
+    <div class="form-field form-field-wide">
+      <label>Notas</label>
+      <input nbInput fullWidth formControlName="notas" placeholder="Observaciones del contenedor" />
+    </div>
+  </form>
+
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button type="button" nbButton status="primary" class="btn-save" (click)="save()" [disabled]="saving()">
+      @if (saving()) {
+        <nb-spinner size="tiny" status="control" />
+      } @else {
+        CREAR LOTE
+      }
+    </button>
+  </div>
+</div>

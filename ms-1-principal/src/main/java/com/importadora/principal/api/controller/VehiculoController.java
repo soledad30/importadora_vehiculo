@@ -17,7 +17,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.importadora.principal.api.dto.ImagenVehiculoResponse;
+import com.importadora.principal.domain.service.VehiculoImagenStorageService;
 
 import java.util.List;
 
@@ -28,6 +33,7 @@ import java.util.List;
 public class VehiculoController {
 
     private final VehiculoService vehiculoService;
+    private final VehiculoImagenStorageService imagenStorageService;
 
     @GetMapping
     @Operation(summary = "Listar todos los vehículos")
@@ -39,6 +45,14 @@ public class VehiculoController {
     @Operation(summary = "Obtener vehículo por ID")
     public VehiculoResponse obtener(@PathVariable Long id) {
         return vehiculoService.obtenerPorId(id);
+    }
+
+    @PostMapping("/imagen")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @Operation(summary = "Subir imagen del vehículo desde carpeta local")
+    public ResponseEntity<ImagenVehiculoResponse> subirImagen(
+            @RequestPart("archivo") MultipartFile archivo) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(imagenStorageService.guardar(archivo));
     }
 
     @PostMapping

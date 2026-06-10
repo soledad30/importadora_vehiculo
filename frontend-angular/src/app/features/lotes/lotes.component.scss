@@ -1,0 +1,104 @@
+.lotes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-hint-color);
+  max-width: 52rem;
+}
+
+.flujo-hint {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--text-hint-color);
+  background: rgba(91, 124, 255, 0.08);
+  border: 1px solid rgba(91, 124, 255, 0.2);
+}
+
+.flujo-label {
+  font-weight: 700;
+  color: #5b7cff;
+  margin-right: 0.35rem;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.lotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.lote-card nb-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lote-codigo {
+  font-weight: 700;
+}
+
+.estado-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.estado-planificado { background: rgba(143, 155, 179, 0.2); color: #8f9bb3; }
+.estado-embarcado { background: rgba(51, 102, 255, 0.15); color: #5b7cff; }
+.estado-transito { background: rgba(255, 170, 0, 0.15); color: #ffaa00; }
+.estado-aduana { background: rgba(255, 61, 113, 0.12); color: #ff3d71; }
+.estado-liberado { background: rgba(0, 149, 255, 0.15); color: #0095ff; }
+.estado-patio { background: rgba(0, 214, 143, 0.15); color: #00d68f; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.sync-ms2 {
+  font-size: 0.85rem;
+  color: var(--color-info-default);
+}
+
+.en-patio-ok {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #00d68f;
+}
+
+.empty-card {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-hint-color);
+}

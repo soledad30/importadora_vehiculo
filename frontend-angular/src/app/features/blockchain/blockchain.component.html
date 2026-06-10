@@ -2,30 +2,146 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Historial Blockchain</h1>
-      <p class="page-sub">Trazabilidad inmutable del ciclo de vida de cada vehículo <span class="ms-tag">MS-2</span></p>
+      <p class="page-sub">
+        Trazabilidad inmutable del ciclo de vida de cada vehículo
+        <!--span class="ms-tag">MS-2</span-->
+      </p>
     </div>
+    <button type="button" nbButton size="small" status="basic" (click)="toggleAyuda()">
+      <nb-icon icon="question-mark-circle-outline" />
+      {{ showAyuda() ? 'Ocultar guía' : '¿Cómo funciona?' }}
+    </button>
   </header>
+<!--
+  @if (showAyuda()) {
+    <nb-card class="ayuda-card">
+      <nb-card-body>
+        <h3>¿Cómo funciona la blockchain en esta importadora?</h3>
+        <div class="ayuda-grid">
+          <div>
+            <strong>1. Eventos automáticos (MS-1 → MS-2)</strong>
+            <p>
+              Cuando confirmas una importación o entregas un pedido, MS-1 llama a
+              <code>POST /api/blockchain/registrar</code> en MS-2 con el VIN y el hito
+              (ingreso aduana, entrega al cliente, etc.).
+            </p>
+          </div>
+          <div>
+            <strong>2. Registro inmutable</strong>
+            <p>
+              Cada evento queda en la base de MS-2 con fecha, descripción y usuario.
+              En producción se anclaría a una red (Ethereum/Polygon) generando un
+              <em>TX Hash</em> verificable.
+            </p>
+          </div>
+          <div>
+            <strong>3. Cadena de custodia</strong>
+            <p>
+              La línea de tiempo muestra el recorrido: origen → embarque → tránsito →
+              aduana → liberación → entrega. Sirve para auditorías, reclamos y cumplimiento.
+            </p>
+          </div>
+          <div>
+            <strong>4. Qué valida el badge</strong>
+            <p>
+              <span class="badge-mini verificado">Verificado</span> = cadena con evento ENTREGA
+              y confirmaciones on-chain simuladas.<br />
+              <span class="badge-mini proceso">En tránsito</span> = aún no llega a entrega final.
+            </p>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  }
+-->
+  <nb-card class="filtros-card">
+    <nb-card-header>Filtros de búsqueda</nb-card-header>
+    <nb-card-body>
+      <div class="filtros-grid">
+        <div class="filtro-field filtro-wide">
+          <label>VIN, vehículo o TX Hash</label>
+          <input
+            nbInput
+            fullWidth
+            placeholder="Ej. 2T3P1RFV5RC123456 o 0x7a3f..."
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            (keyup.enter)="aplicarFiltros()"
+          />
+        </div>
+        <div class="filtro-field">
+          <label>Tipo de evento</label>
+          <nb-select fullWidth [ngModel]="filtroTipo()" (ngModelChange)="filtroTipo.set($event)">
+            @for (t of tiposEvento; track t.value) {
+              <nb-option [value]="t.value">{{ t.label }}</nb-option>
+            }
+          </nb-select>
+        </div>
+        <div class="filtro-field">
+          <label>Red blockchain</label>
+          <nb-select fullWidth [ngModel]="filtroRed()" (ngModelChange)="filtroRed.set($event)">
+            @for (r of redes; track r) {
+              <nb-option [value]="r">{{ r === 'TODOS' ? 'Todas las redes' : r }}</nb-option>
+            }
+          </nb-select>
+        </div>
+        <div class="filtro-field">
+          <label>Estado de custodia</label>
+          <nb-select fullWidth [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event)">
+            @for (e of estadosCustodia; track e.value) {
+              <nb-option [value]="e.value">{{ e.label }}</nb-option>
+            }
+          </nb-select>
+        </div>
+        <div class="filtro-field">
+          <label>Desde</label>
+          <input nbInput fullWidth type="date" [ngModel]="fechaDesde()" (ngModelChange)="fechaDesde.set($event)" />
+        </div>
+        <div class="filtro-field">
+          <label>Hasta</label>
+          <input nbInput fullWidth type="date" [ngModel]="fechaHasta()" (ngModelChange)="fechaHasta.set($event)" />
+        </div>
+      </div>
+      <div class="filtros-actions">
+        <button type="button" nbButton status="primary" (click)="aplicarFiltros()">
+          <nb-icon icon="search-outline" /> Buscar
+        </button>
+        <button type="button" nbButton status="basic" (click)="limpiarFiltros()">Limpiar filtros</button>
+      </div>
+    </nb-card-body>
+  </nb-card>
 
-  <input
-    nbInput fullWidth
-    class="search-input"
-    placeholder="Buscar por VIN o TX Hash..."
-    [ngModel]="search()"
-    (ngModelChange)="search.set($event)"
-  />
+  @if (!loading()) {
+    <div class="resumen-bar">
+      <span><strong>{{ resumen().vehiculos }}</strong> vehículos</span>
+      <span><strong>{{ resumen().eventos }}</strong> eventos</span>
+      <span><strong>{{ resumen().completas }}</strong> cadenas completas</span>
+    </div>
+  }
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
 
   @if (loading()) {
     <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else if (!vehiculos().length) {
+    <nb-alert status="info" [closable]="false">
+      No hay registros con los filtros seleccionados. Prueba ampliar fechas o limpiar filtros.
+    </nb-alert>
   } @else {
-    @for (v of filtered(); track v.vin) {
+    @for (v of vehiculos(); track v.vin) {
       <nb-card class="vehiculo-card">
         <nb-card-body>
           <div class="vehiculo-head">
             <div>
               <h2>{{ v.titulo }} | VIN: {{ v.vin }}</h2>
-              <p class="meta">Blockchain ID: {{ v.blockchainId }} | Red: {{ v.red }} | {{ v.eventos.length }} eventos registrados</p>
+              <p class="meta">
+                Blockchain ID: {{ v.blockchainId }} | Red: {{ v.red }} |
+                {{ v.eventos.length }} evento(s) | Último bloque {{ v.block }}
+              </p>
             </div>
-            <span class="badge-verificado">Verificado</span>
+            <span [class]="badgeEstado(v).class">{{ badgeEstado(v).label }}</span>
           </div>
 
           <h4 class="section-title">CADENA DE CUSTODIA</h4>
@@ -34,7 +150,7 @@
               <div class="timeline-item">
                 <div class="timeline-node" [class]="eventoClass(ev.tipo)"></div>
                 <div class="timeline-content">
-                  <span class="ev-fecha">{{ ev.fecha }}</span>
+                  <span class="ev-fecha">{{ ev.fecha }} · {{ eventoLabel(ev.tipo) }}</span>
                   <strong class="ev-titulo">{{ ev.titulo }}</strong>
                   <p class="ev-detalle">{{ ev.detalle }}</p>
                 </div>
@@ -43,8 +159,13 @@
           </div>
 
           <div class="tx-footer">
-            <div><span class="tx-label">Último TX Hash</span><code>{{ shortHash(v.ultimoTxHash) }}</code></div>
-            <div class="tx-stats">Block: {{ v.block }} | Gas: {{ v.gas }} | Confirmaciones: {{ v.confirmaciones }}</div>
+            <div>
+              <span class="tx-label">Último TX Hash</span>
+              <code>{{ v.ultimoTxHash }}</code>
+            </div>
+            <div class="tx-stats">
+              Block: {{ v.block }} | Gas: {{ v.gas }} | Confirmaciones: {{ v.confirmaciones }}
+            </div>
           </div>
         </nb-card-body>
       </nb-card>

@@ -1,21 +1,23 @@
 <div class="dialog-shell">
-  <h3 class="dialog-title">Nuevo pedido de venta</h3>
+  <h3 class="dialog-title">{{ modoCliente ? 'Solicitar vehículo' : 'Nuevo pedido de venta' }}</h3>
 
   @if (error()) {
     <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
   }
 
   <form [formGroup]="form" class="dialog-form">
-    <div class="form-field form-field-wide">
-      <label>Cliente</label>
-      <nb-select formControlName="clienteId" fullWidth placeholder="Seleccione cliente">
-        @for (c of clientes; track c.id) {
-          <nb-option [value]="c.id">
-            {{ c.nombreCompleto || (c.nombres + ' ' + c.apellidos) }} — {{ c.numeroDocumento }}
-          </nb-option>
-        }
-      </nb-select>
-    </div>
+    @if (!modoCliente) {
+      <div class="form-field form-field-wide">
+        <label>Cliente</label>
+        <nb-select formControlName="clienteId" fullWidth placeholder="Seleccione cliente">
+          @for (c of clientes; track c.id) {
+            <nb-option [value]="c.id">
+              {{ c.nombreCompleto || (c.nombres + ' ' + c.apellidos) }} — {{ c.numeroDocumento }}
+            </nb-option>
+          }
+        </nb-select>
+      </div>
+    }
     <div class="form-field form-field-wide">
       <label>Vehículo disponible</label>
       <nb-select formControlName="vehiculoId" fullWidth placeholder="Seleccione vehículo">

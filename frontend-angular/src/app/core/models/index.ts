@@ -22,6 +22,8 @@ export interface Vehiculo {
   precio: number;
   estado: string;
   imagenUrl?: string | null;
+  loteId?: number | null;
+  loteCodigo?: string | null;
   paisOrigen?: string;
   esImportado?: boolean;
   creadoEn: string;
@@ -62,6 +64,29 @@ export interface ClienteCreateRequest {
   notas?: string;
 }
 
+export interface MiPerfil {
+  usuarioId: number;
+  username: string;
+  email: string;
+  rol: RolUsuario;
+  cliente?: Cliente | null;
+  vendedor?: Vendedor | null;
+}
+
+export interface MiPerfilUpdateRequest {
+  nombreCompleto?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+  ciudad?: string;
+  zonaAsignada?: string;
+}
+
+export interface CambioContrasenaRequest {
+  contrasenaActual: string;
+  contrasenaNueva: string;
+}
+
 export type EstadoPedido =
   | 'PENDIENTE'
   | 'CONFIRMADO'
@@ -74,6 +99,7 @@ export interface Pedido {
   codigo: string;
   clienteId: number;
   clienteNombre: string;
+  clienteNumeroDocumento?: string;
   vehiculoId: number;
   vehiculoDescripcion: string;
   vehiculoTitulo: string;
@@ -120,8 +146,38 @@ export interface Importacion {
   estado: string;
   fechaInicio: string;
   fechaEstimadaEntrega?: string;
+  numeroDua?: string;
+  agenteAduanal?: string;
+  montoDai?: number;
+  montoIsc?: number;
+  montoIvaAduana?: number;
+  montoTotalImpuestos?: number;
+  estadoPagoAduana?: 'PENDIENTE' | 'PAGADO' | 'LIBERADO';
+  comprobantePagoSunca?: string;
+  fechaPagoAduana?: string;
+  referenciaPoliza?: string;
   creadoEn: string;
   actualizadoEn: string;
+}
+
+export interface ImpuestosAduana {
+  importacionId: number;
+  codigo: string;
+  valorCif: number;
+  montoDai: number;
+  montoIsc: number;
+  montoIvaAduana: number;
+  montoTotalImpuestos: number;
+}
+
+export interface PagoAduanaRequest {
+  numeroDua: string;
+  agenteAduanal: string;
+  comprobantePagoSunca: string;
+  referenciaPoliza?: string;
+  montoDai?: number;
+  montoIsc?: number;
+  montoIvaAduana?: number;
 }
 
 export interface Usuario {
@@ -150,6 +206,12 @@ export interface Factura {
   pedidoCodigo?: string;
   numeroFactura: string;
   monto: number;
+  subtotal?: number;
+  isv?: number;
+  cai?: string;
+  rtnEmisor?: string;
+  rtnCliente?: string;
+  metodoPago?: 'EFECTIVO' | 'TRANSFERENCIA' | 'TARJETA' | 'CHEQUE';
   estado: string;
   fechaEmision: string;
   clienteId?: number;
@@ -261,3 +323,133 @@ export interface ReporteResumen {
     comisionPorcentaje: number;
   }[];
 }
+
+export interface ReporteImportaciones {
+  totalActivas: number;
+  totalCompletadas: number;
+  pedidosConfirmadosSinImportacion: number;
+  importacionesRetrasadas: number;
+  promedioDiasEnProceso: number;
+  pipeline: {
+    estado: string;
+    etiqueta: string;
+    cantidad: number;
+  }[];
+  alertas: {
+    codigo: string;
+    vehiculo: string;
+    cliente: string;
+    estado: string;
+    diasEnProceso: number;
+    fechaEstimadaEntrega: string;
+    puertoDestino: string;
+  }[];
+}
+
+export interface ReporteFinanzas {
+  facturasEmitidas: number;
+  facturasPagadas: number;
+  facturasBorrador: number;
+  facturasAnuladas: number;
+  montoPorCobrar: number;
+  montoCobrado: number;
+  montoTotalFacturado: number;
+  pendientesCobro: {
+    numeroFactura: string;
+    cliente: string;
+    vehiculo: string;
+    monto: number;
+    fechaEmision: string;
+    diasDesdeEmision: number;
+  }[];
+}
+
+export type EstadoLote =
+  | 'PLANIFICADO'
+  | 'EMBARCADO'
+  | 'EN_TRANSITO'
+  | 'EN_ADUANA'
+  | 'LIBERADO'
+  | 'EN_PATIO';
+
+export interface LoteImportacion {
+  id: number;
+  codigo: string;
+  numeroContenedor?: string;
+  naviera?: string;
+  puertoOrigen?: string;
+  puertoDestino?: string;
+  estado: EstadoLote;
+  fechaEmbarque?: string;
+  cantidadVehiculos: number;
+  ms2EmbarqueId?: string | null;
+  notas?: string;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+export type TipoProveedorCompra = 'SUBASTA' | 'DEALER' | 'PRIVADO';
+
+export interface CompraOrigen {
+  id: number;
+  vehiculoId: number;
+  vehiculoVin: string;
+  vehiculoTitulo: string;
+  proveedor: string;
+  tipoProveedor: TipoProveedorCompra;
+  loteSubasta?: string;
+  precioFob: number;
+  fechaCompra: string;
+  paisOrigen?: string;
+  referenciaDocumento?: string;
+  notas?: string;
+  creadoEn: string;
+}
+
+export type TipoComprador = 'PERSONA_NATURAL' | 'EMPRESA';
+
+export interface ChecklistItemEntrega {
+  codigo: string;
+  descripcion: string;
+  completado: boolean;
+  obligatorio: boolean;
+  detalle: string;
+}
+
+export interface ChecklistEntrega {
+  pedidoId: number;
+  pedidoCodigo: string;
+  vehiculoVin: string;
+  listoParaEntregar: boolean;
+  items: ChecklistItemEntrega[];
+}
+
+export interface EntregaRequest {
+  recibidoPor: string;
+  lugarEntrega?: string;
+  tipoDocumentoRecibe?: string;
+  numeroDocumentoRecibe?: string;
+  kilometraje?: number;
+  observaciones?: string;
+  tipoComprador: TipoComprador;
+  titularNombre?: string;
+  rtn?: string;
+  notario?: string;
+  numeroTraspaso?: string;
+}
+
+export interface EntregaCompleta {
+  pedido: Pedido;
+  actaNumero: string;
+  fechaEntrega: string;
+  lugarEntrega?: string;
+  recibidoPor: string;
+  tipoComprador: TipoComprador;
+  titularNombre: string;
+  rtn?: string;
+  numeroTraspaso?: string;
+  estadoTraspaso: string;
+  notario?: string;
+}
+
+export type { FlujoCompleto, PasoFlujo } from './ms-extensions';

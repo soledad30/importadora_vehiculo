@@ -38,6 +38,8 @@ export class PedidoFormDialogComponent implements OnInit {
 
   @Input() clientes: Cliente[] = [];
   @Input() vehiculos: Vehiculo[] = [];
+  @Input() modoCliente = false;
+  @Input() clienteIdFijo: number | null = null;
 
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
@@ -67,6 +69,9 @@ export class PedidoFormDialogComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (this.modoCliente && this.clienteIdFijo) {
+      this.form.controls.clienteId.setValue(this.clienteIdFijo);
+    }
     this.form.controls.vehiculoId.valueChanges.subscribe(() => {
       const v = this.vehiculoSeleccionado();
       if (v && !this.form.controls.impuestos.value) {

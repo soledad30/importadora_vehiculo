@@ -25,6 +25,16 @@
   color: var(--text-hint-color);
 }
 
+.flujo-hint {
+  padding: 0.65rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--text-hint-color);
+  background: rgba(91, 124, 255, 0.08);
+  border: 1px solid rgba(91, 124, 255, 0.2);
+  line-height: 1.5;
+}
+
 .btn-nuevo {
   font-weight: 600;
   text-transform: none;

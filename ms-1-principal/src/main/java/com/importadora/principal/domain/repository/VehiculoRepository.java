@@ -13,4 +13,6 @@ public interface VehiculoRepository extends JpaRepository<Vehiculo, Long> {
     boolean existsByVin(String vin);
 
     long countByEstado(EstadoVehiculo estado);
+
+    long countByLoteId(Long loteId);
 }

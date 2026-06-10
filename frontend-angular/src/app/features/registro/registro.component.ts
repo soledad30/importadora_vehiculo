@@ -36,7 +36,8 @@ export class RegistroComponent {
     {
       nombreCompleto: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      telefono: [''],
+      telefono: ['', Validators.required],
+      cedulaDocumento: ['', [Validators.required, Validators.minLength(5)]],
       rol: ['VENDEDOR' as RolUsuario, Validators.required],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]

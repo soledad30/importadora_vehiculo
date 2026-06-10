@@ -1,10 +1,12 @@
 package com.importadora.principal.api.dto;
 
 import com.importadora.principal.domain.model.EstadoImportacion;
+import com.importadora.principal.domain.model.EstadoPagoAduana;
 import com.importadora.principal.domain.model.Importacion;
 import com.importadora.principal.domain.model.Pedido;
 import com.importadora.principal.domain.model.Vehiculo;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -28,6 +30,16 @@ public record ImportacionResponse(
         EstadoImportacion estado,
         LocalDate fechaInicio,
         LocalDate fechaEstimadaEntrega,
+        String numeroDua,
+        String agenteAduanal,
+        BigDecimal montoDai,
+        BigDecimal montoIsc,
+        BigDecimal montoIvaAduana,
+        BigDecimal montoTotalImpuestos,
+        EstadoPagoAduana estadoPagoAduana,
+        String comprobantePagoSunca,
+        LocalDate fechaPagoAduana,
+        String referenciaPoliza,
         Instant creadoEn,
         Instant actualizadoEn
 ) {
@@ -60,6 +72,16 @@ public record ImportacionResponse(
                 i.getEstado(),
                 i.getFechaInicio(),
                 i.getFechaEstimadaEntrega(),
+                i.getNumeroDua(),
+                i.getAgenteAduanal(),
+                i.getMontoDai(),
+                i.getMontoIsc(),
+                i.getMontoIvaAduana(),
+                i.getMontoTotalImpuestos(),
+                i.getEstadoPagoAduana(),
+                i.getComprobantePagoSunca(),
+                i.getFechaPagoAduana(),
+                i.getReferenciaPoliza(),
                 i.getCreadoEn(),
                 i.getActualizadoEn()
         );

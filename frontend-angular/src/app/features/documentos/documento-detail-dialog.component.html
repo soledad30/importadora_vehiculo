@@ -1,0 +1,102 @@
+<div class="dialog-shell">
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    @if (doc(); as d) {
+      <h3 class="dialog-title">{{ d.nombre }}</h3>
+      <p class="dialog-sub">{{ d.vehiculo }} · {{ d.tipo }} · {{ d.fecha }}</p>
+
+      @if (error()) {
+        <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+      }
+
+      <section class="flujo-section">
+        <h4>Proceso de verificación</h4>
+        <div class="flujo-timeline">
+          @for (paso of d.pasos; track paso; let i = $index) {
+            <div
+              class="flujo-step"
+              [class.done]="pasoCompletado(i, d.pasoActual ?? 0)"
+              [class.active]="pasoActivo(i, d.pasoActual ?? 0)"
+            >
+              <div class="step-dot"></div>
+              <span>{{ paso }}</span>
+            </div>
+            @if (i < d.pasos.length - 1) {
+              <div class="flujo-line" [class.done]="pasoCompletado(i + 1, d.pasoActual ?? 0)"></div>
+            }
+          }
+        </div>
+        <p class="estado-actual">Estado actual: <strong>{{ estadoLabel(d.estado) }}</strong></p>
+      </section>
+
+      @if (d.ocr) {
+        <section class="ocr-section">
+          <h4>Datos OCR (MS-3)</h4>
+          <dl class="ocr-grid">
+            @if (d.ocr.propietario) { <dt>Propietario / Emisor</dt><dd>{{ d.ocr.propietario }}</dd> }
+            @if (d.ocr.vin) { <dt>VIN / Referencia</dt><dd>{{ d.ocr.vin }}</dd> }
+            @if (d.ocr.estado) { <dt>Detalle</dt><dd>{{ d.ocr.estado }}</dd> }
+            @if (d.ocr.fechaEmision) { <dt>Fecha emisión</dt><dd>{{ d.ocr.fechaEmision }}</dd> }
+            @if (d.ocr.tipoTitulo) { <dt>Tipo</dt><dd>{{ d.ocr.tipoTitulo }}</dd> }
+            @if (d.ocr.confianza != null) { <dt>Confianza OCR</dt><dd>{{ d.ocr.confianza }}%</dd> }
+          </dl>
+        </section>
+      }
+
+      <section class="archivo-section">
+        <h4>Vista previa del archivo</h4>
+        @if (d.tieneArchivo) {
+          @if (loadingPreview()) {
+            <div class="preview-loading"><nb-spinner size="medium" status="primary" /> Cargando vista previa…</div>
+          } @else if (previewUrl()) {
+            <div class="preview-toolbar">
+              <button type="button" nbButton size="small" status="basic" (click)="descargarArchivo()">
+                <nb-icon icon="download-outline" /> Descargar
+              </button>
+            </div>
+            @if (esPdf(d.nombre)) {
+              <iframe class="pdf-preview" [src]="previewUrl()!" title="Vista previa PDF"></iframe>
+            } @else if (esImagen(d.nombre)) {
+              <img class="img-preview" [src]="previewUrl()!" [alt]="d.nombre" />
+            } @else {
+              <nb-alert status="info" [closable]="false">Vista previa no disponible. Use Descargar.</nb-alert>
+            }
+          }
+        } @else {
+          <nb-alert status="warning" [closable]="false">
+            Este documento no tiene archivo en S3. Use el botón <strong>Subir archivo</strong> para adjuntarlo.
+          </nb-alert>
+        }
+      </section>
+
+      <div class="dialog-actions">
+        <div class="action-row">
+          @if (!d.tieneArchivo) {
+            <button type="button" nbButton status="warning" (click)="subirArchivo()">
+              <nb-icon icon="upload-outline" /> Subir archivo
+            </button>
+          } @else {
+            <button type="button" nbButton status="basic" (click)="subirArchivo()">
+              <nb-icon icon="refresh-outline" /> Reemplazar archivo
+            </button>
+          }
+          <button type="button" nbButton status="info" (click)="editarDocumento()">
+            <nb-icon icon="edit-outline" /> Editar datos
+          </button>
+        </div>
+        @if (d.siguienteAccion) {
+          <button type="button" nbButton status="success" (click)="avanzar()" [disabled]="avanzando()">
+            @if (avanzando()) { Avanzando… } @else { {{ d.siguienteAccion }} }
+          </button>
+        } @else {
+          <nb-alert status="success" [closable]="false">Documento verificado y archivado.</nb-alert>
+        }
+        <button type="button" nbButton status="basic" (click)="cerrar(true)">Cerrar</button>
+      </div>
+    } @else {
+      <nb-alert status="danger" [closable]="false">{{ error() ?? 'Documento no encontrado' }}</nb-alert>
+      <button type="button" nbButton status="basic" (click)="cerrar()">Cerrar</button>
+    }
+  }
+</div>

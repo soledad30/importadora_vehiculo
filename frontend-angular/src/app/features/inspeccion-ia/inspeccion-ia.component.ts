@@ -9,7 +9,7 @@ import {
 } from '@nebular/theme';
 import { forkJoin } from 'rxjs';
 import { InspeccionActiva } from '../../core/models/ms-extensions';
-import { Ms3MockService } from '../../core/services/ms3-mock.service';
+import { Ms3Service } from '../../core/services/ms3.service';
 import { InspeccionFormDialogComponent } from './inspeccion-form-dialog.component';
 
 @Component({
@@ -20,7 +20,7 @@ import { InspeccionFormDialogComponent } from './inspeccion-form-dialog.componen
   styleUrl: './inspeccion-ia.component.scss'
 })
 export class InspeccionIaComponent implements OnInit {
-  private readonly ms3 = inject(Ms3MockService);
+  private readonly ms3 = inject(Ms3Service);
   private readonly dialog = inject(NbDialogService);
 
   readonly activa = signal<InspeccionActiva | null>(null);

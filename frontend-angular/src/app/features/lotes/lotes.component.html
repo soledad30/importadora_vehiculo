@@ -1,0 +1,77 @@
+<div class="lotes-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Lotes de importación</h1>
+      <p class="page-sub">
+        Contenedores marítimos: agrupe vehículos comprados en USA y avance el tránsito hasta el patio.
+      </p>
+    </div>
+    <button type="button" nbButton status="primary" (click)="crearLote()">
+      <nb-icon icon="plus-outline" />
+      Nuevo lote
+    </button>
+  </header>
+
+  <div class="flujo-hint">
+    <span class="flujo-label">Flujo del contenedor:</span>
+    Planificado → Embarcado → En tránsito → En aduana → Liberado → En patio
+  </div>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="true" (close)="error.set(null)">{{ error() }}</nb-alert>
+  }
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    <div class="lotes-grid">
+      @for (l of lotes(); track l.id) {
+        <nb-card class="lote-card">
+          <nb-card-header>
+            <span class="lote-codigo">{{ l.codigo }}</span>
+            <span class="estado-badge" [class]="estadoClass(l.estado)">{{ estadoLabels[l.estado] }}</span>
+          </nb-card-header>
+          <nb-card-body>
+            <p><strong>Contenedor:</strong> {{ l.numeroContenedor || '—' }}</p>
+            <p><strong>Naviera:</strong> {{ l.naviera || '—' }}</p>
+            <p><strong>Ruta:</strong> {{ l.puertoOrigen || '?' }} → {{ l.puertoDestino || '?' }}</p>
+            <p><strong>Vehículos:</strong> {{ l.cantidadVehiculos }}</p>
+            @if (l.ms2EmbarqueId) {
+              <p class="sync-ms2"><strong>MS-2 embarque:</strong> #{{ l.ms2EmbarqueId }}</p>
+            }
+            <p><strong>Embarque:</strong> {{ l.fechaEmbarque ? (l.fechaEmbarque | date:'yyyy-MM-dd') : '—' }}</p>
+            <div class="actions">
+              @if (l.estado !== 'EN_PATIO') {
+                <button
+                  type="button"
+                  nbButton
+                  size="small"
+                  status="info"
+                  [disabled]="avanzandoId() === l.id"
+                  (click)="avanzar(l)"
+                >
+                  @if (avanzandoId() === l.id) {
+                    Avanzando…
+                  } @else {
+                    Avanzar@if (siguienteEstado(l.estado)) { → {{ siguienteEstado(l.estado) }} }
+                  }
+                </button>
+              } @else {
+                <span class="en-patio-ok">Contenedor en patio</span>
+              }
+              <button type="button" nbButton size="small" status="warning" (click)="asignar(l)">
+                + Vehículo
+              </button>
+            </div>
+          </nb-card-body>
+        </nb-card>
+      } @empty {
+        <nb-card class="empty-card">
+          <nb-card-body>
+            <p>No hay lotes registrados. Cree un contenedor y asigne vehículos comprados en origen.</p>
+          </nb-card-body>
+        </nb-card>
+      }
+    </div>
+  }
+</div>

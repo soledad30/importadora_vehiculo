@@ -5,9 +5,9 @@ import { Factura } from '../models';
 
 const EMPRESA = {
   nombre: 'Importadora de Vehiculos S.A.',
-  ruc: 'J-12345678-9',
-  direccion: 'Km 8.5 Carretera Masaya, Managua, Nicaragua',
-  telefono: '+505 2222-0000',
+  rtn: '0801-1990-123456',
+  direccion: 'Col. Palmira, Tegucigalpa / Managua',
+  telefono: '+504 2222-0000',
   email: 'facturacion@importadoravehiculos.com',
   web: 'www.importadoravehiculos.com'
 };
@@ -30,7 +30,7 @@ export class FacturaPdfService {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text(`${EMPRESA.direccion}  |  Tel: ${EMPRESA.telefono}`, margin, 23);
-    doc.text(`RUC: ${EMPRESA.ruc}  |  ${EMPRESA.email}`, margin, 29);
+    doc.text(`RTN: ${factura.rtnEmisor ?? EMPRESA.rtn}  |  ${EMPRESA.email}`, margin, 29);
     doc.text(EMPRESA.web, margin, 35);
 
     // Bloque factura
@@ -56,6 +56,13 @@ export class FacturaPdfService {
     doc.setTextColor(34, 43, 69);
 
     y += 12;
+    y = this.drawSection(doc, margin, y, pageW - margin * 2, 'DATOS FISCALES', [
+      ['CAI', factura.cai ?? '—'],
+      ['RTN emisor', factura.rtnEmisor ?? EMPRESA.rtn],
+      ['RTN cliente', factura.rtnCliente ?? factura.clienteDocumento ?? '—'],
+      ['Metodo pago', factura.metodoPago ?? '—']
+    ]);
+
     y = this.drawSection(doc, margin, y, pageW - margin * 2, 'DATOS DEL CLIENTE', [
       ['Nombre', factura.clienteNombre ?? '—'],
       ['Documento', factura.clienteDocumento ?? '—'],
@@ -130,8 +137,11 @@ export class FacturaPdfService {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(80, 90, 110);
-    doc.text('Precio base:', totalX - 68, y);
-    doc.text(this.fmtUsd(factura.precioBase ?? factura.monto), totalX, y, { align: 'right' });
+    doc.text('Subtotal gravado:', totalX - 68, y);
+    doc.text(this.fmtUsd(factura.subtotal ?? factura.precioBase ?? factura.monto), totalX, y, { align: 'right' });
+    y += 6;
+    doc.text('ISV (15%):', totalX - 68, y);
+    doc.text(this.fmtUsd(factura.isv ?? 0), totalX, y, { align: 'right' });
     y += 6;
     doc.text('Impuestos importacion:', totalX - 68, y);
     doc.text(this.fmtUsd(factura.impuestos ?? 0), totalX, y, { align: 'right' });

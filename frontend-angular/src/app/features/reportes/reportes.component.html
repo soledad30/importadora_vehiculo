@@ -2,12 +2,42 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Reportes</h1>
-      <p class="page-sub">Resumen general del negocio</p>
+      <p class="page-sub">Centro de inteligencia operativa </p><!--· MS-1 + MS-3-->
+      <p class="page-meta">Actualizado: {{ generadoEn() }}</p>
+    </div>
+    <div class="header-actions">
+      <span class="export-label">Exportar pestaña:</span>
+      <button type="button" nbButton size="small" status="danger" (click)="exportar('pdf')" [disabled]="loading()">
+        <nb-icon icon="file-text-outline" /> PDF
+      </button>
+      <button type="button" nbButton size="small" status="success" (click)="exportar('excel')" [disabled]="loading()">
+        <nb-icon icon="grid-outline" /> Excel
+      </button>
+      <button type="button" nbButton size="small" status="info" (click)="exportar('word')" [disabled]="loading()">
+        <nb-icon icon="book-outline" /> Word
+      </button>
+      <button type="button" nbButton status="basic" size="small" (click)="load()">
+        <nb-icon icon="refresh-outline" /> Actualizar
+      </button>
     </div>
   </header>
 
+  <nav class="tabs-nav">
+    @for (t of tabs; track t.id) {
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="tab() === t.id"
+        (click)="setTab(t.id)"
+      >
+        <nb-icon [icon]="t.icon" />
+        {{ t.label }}
+      </button>
+    }
+  </nav>
+
   @if (error()) {
-    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+    <nb-alert status="warning" [closable]="false">{{ error() }}</nb-alert>
   }
 
   @if (loading()) {
@@ -15,79 +45,420 @@
       <nb-spinner status="primary" size="large" />
     </div>
   } @else {
-    @if (data(); as r) {
-    <div class="kpi-grid">
-      <div class="kpi-card kpi-ventas">
-        <span class="kpi-label">Ventas Totales</span>
-        <span class="kpi-value">{{ formatCompact(r.ventasTotales) }}</span>
-      </div>
-      <div class="kpi-card kpi-mes">
-        <span class="kpi-label">Ventas del Mes</span>
-        <span class="kpi-value">{{ formatCompact(r.ventasMesActual) }}</span>
-      </div>
-      <div class="kpi-card kpi-pendientes">
-        <span class="kpi-label">Pedidos Pendientes</span>
-        <span class="kpi-value">{{ r.pedidosPendientes }}</span>
-      </div>
-      <div class="kpi-card kpi-proceso">
-        <span class="kpi-label">En Proceso</span>
-        <span class="kpi-value">{{ r.pedidosEnProceso }}</span>
-      </div>
-    </div>
-
-    <div class="sections-grid">
-      <nb-card class="section-card">
-        <nb-card-header>Operaciones</nb-card-header>
+    @if (insightsActuales().length) {
+      <nb-card class="insights-card">
+        <nb-card-header>
+          <nb-icon icon="bulb-outline" /> Análisis para decisiones
+        </nb-card-header>
         <nb-card-body>
-          <ul class="metric-list">
-            <li><span>Pedidos completados</span><strong>{{ r.pedidosCompletados }}</strong></li>
-            <li><span>Importaciones activas</span><strong>{{ r.importacionesActivas }}</strong></li>
-            <li><span>Facturas emitidas</span><strong>{{ r.facturasEmitidas }}</strong></li>
+          <ul class="insights-list">
+            @for (item of insightsActuales(); track item) {
+              <li>{{ item }}</li>
+            }
           </ul>
         </nb-card-body>
       </nb-card>
+    }
 
-      <nb-card class="section-card">
-        <nb-card-header>Inventario y clientes</nb-card-header>
-        <nb-card-body>
-          <ul class="metric-list">
-            <li><span>Vehiculos disponibles</span><strong>{{ r.vehiculosDisponibles }}</strong></li>
-            <li><span>Vehiculos vendidos</span><strong>{{ r.vehiculosVendidos }}</strong></li>
-            <li><span>Clientes activos</span><strong>{{ r.clientesActivos }}</strong></li>
-          </ul>
-        </nb-card-body>
-      </nb-card>
-    </div>
+    @switch (tab()) {
+      @case ('ejecutivo') {
+        @if (resumen(); as r) {
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-ventas">
+              <span class="kpi-label">Ventas Totales</span>
+              <span class="kpi-value">{{ formatCompact(r.ventasTotales) }}</span>
+            </div>
+            <div class="kpi-card kpi-mes">
+              <span class="kpi-label">Ventas del Mes</span>
+              <span class="kpi-value">{{ formatCompact(r.ventasMesActual) }}</span>
+            </div>
+            <div class="kpi-card kpi-pendientes">
+              <span class="kpi-label">Pedidos Pendientes</span>
+              <span class="kpi-value">{{ r.pedidosPendientes }}</span>
+            </div>
+            <div class="kpi-card kpi-proceso">
+              <span class="kpi-label">En Proceso</span>
+              <span class="kpi-value">{{ r.pedidosEnProceso }}</span>
+            </div>
+          </div>
 
-    <nb-card class="ranking-card">
-      <nb-card-header>Top Vendedores</nb-card-header>
-      <nb-card-body>
-        @if (r.topVendedores.length) {
-          <table class="ranking-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Ventas</th>
-                <th>Comision</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (v of r.topVendedores; track v.codigo) {
-                <tr>
-                  <td class="col-id">#{{ v.codigo }}</td>
-                  <td>{{ v.nombreCompleto }}</td>
-                  <td class="col-ventas">{{ v.ventasTotales | currency:'USD':'symbol':'1.0-0' }}</td>
-                  <td>{{ v.comisionPorcentaje }}%</td>
-                </tr>
+          <div class="sections-grid sections-grid-3">
+            <nb-card class="section-card">
+              <nb-card-header>Operaciones</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Pedidos completados</span><strong>{{ r.pedidosCompletados }}</strong></li>
+                  <li><span>Importaciones activas</span><strong>{{ r.importacionesActivas }}</strong></li>
+                  <li><span>Facturas emitidas</span><strong>{{ r.facturasEmitidas }}</strong></li>
+                  <li><span>Total pedidos (activos + cerrados)</span><strong>{{ totalPedidos(r) }}</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+
+            <nb-card class="section-card">
+              <nb-card-header>Inventario y clientes</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Vehículos disponibles</span><strong>{{ r.vehiculosDisponibles }}</strong></li>
+                  <li><span>Vehículos vendidos</span><strong>{{ r.vehiculosVendidos }}</strong></li>
+                  <li><span>Clientes activos</span><strong>{{ r.clientesActivos }}</strong></li>
+                  <li><span>Ratio stock / vendidos</span><strong>{{ r.vehiculosVendidos ? (r.vehiculosDisponibles / r.vehiculosVendidos | percent:'1.0-0') : '—' }}</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+
+            <nb-card class="section-card">
+              <nb-card-header>Rendimiento comercial</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Tasa de cierre</span><strong>{{ tasaCierre(r) | percent:'1.1-1' }}</strong></li>
+                  <li><span>Ticket promedio</span><strong>{{ ticketPromedio(r) | currency:'USD':'symbol':'1.0-0' }}</strong></li>
+                  <li><span>Participación ventas del mes</span><strong>{{ r.ventasTotales ? (r.ventasMesActual / r.ventasTotales | percent:'1.1-1') : '—' }}</strong></li>
+                  <li><span>Backlog operativo</span><strong>{{ r.pedidosPendientes + r.pedidosEnProceso }} pedidos</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+          </div>
+
+          <nb-card class="ranking-card">
+            <nb-card-header>Top Vendedores — detalle comercial</nb-card-header>
+            <nb-card-body>
+              @if (r.topVendedores.length) {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nombre</th>
+                      <th>Ventas</th>
+                      <th>Participación</th>
+                      <th>Comisión %</th>
+                      <th>Comisión est.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (v of r.topVendedores; track v.codigo) {
+                      <tr>
+                        <td class="col-id">#{{ v.codigo }}</td>
+                        <td>{{ v.nombreCompleto }}</td>
+                        <td class="col-money">{{ v.ventasTotales | currency:'USD':'symbol':'1.0-0' }}</td>
+                        <td>{{ participacionVenta(v, r) | percent:'1.1-1' }}</td>
+                        <td>{{ v.comisionPorcentaje }}%</td>
+                        <td class="col-money">{{ comisionEstimada(v) | currency:'USD':'symbol':'1.0-0' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="empty-msg">Sin datos de vendedores aún.</p>
               }
-            </tbody>
-          </table>
-        } @else {
-          <p class="empty-msg">Sin datos de vendedores aun.</p>
+            </nb-card-body>
+          </nb-card>
         }
-      </nb-card-body>
-    </nb-card>
+      }
+
+      @case ('importaciones') {
+        @if (importaciones(); as imp) {
+          <div class="kpi-grid kpi-grid-5">
+            <div class="kpi-card kpi-proceso">
+              <span class="kpi-label">Activas</span>
+              <span class="kpi-value">{{ imp.totalActivas }}</span>
+            </div>
+            <div class="kpi-card kpi-ventas">
+              <span class="kpi-label">Completadas</span>
+              <span class="kpi-value">{{ imp.totalCompletadas }}</span>
+            </div>
+            <div class="kpi-card kpi-pendientes">
+              <span class="kpi-label">Sin importación</span>
+              <span class="kpi-value">{{ imp.pedidosConfirmadosSinImportacion }}</span>
+            </div>
+            <div class="kpi-card kpi-alert">
+              <span class="kpi-label">Retrasadas</span>
+              <span class="kpi-value">{{ imp.importacionesRetrasadas }}</span>
+            </div>
+            <div class="kpi-card kpi-mes">
+              <span class="kpi-label">Días prom. en proceso</span>
+              <span class="kpi-value">{{ imp.promedioDiasEnProceso }}</span>
+            </div>
+          </div>
+
+          <div class="sections-grid">
+            <nb-card class="section-card">
+              <nb-card-header>Diagnóstico logístico</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Cuello de botella</span><strong>{{ cuelloBotella(imp) }}</strong></li>
+                  <li>
+                    <span>% retrasadas / activas</span>
+                    <strong>{{ imp.totalActivas ? (imp.importacionesRetrasadas / imp.totalActivas | percent:'1.0-0') : '0%' }}</strong>
+                  </li>
+                  <li><span>Completadas históricas</span><strong>{{ imp.totalCompletadas }}</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+          </div>
+
+          <nb-card class="section-card">
+            <nb-card-header>Pipeline de importación</nb-card-header>
+            <nb-card-body>
+              <div class="pipeline-list">
+                @for (p of imp.pipeline; track p.estado) {
+                  <div class="pipeline-item">
+                    <div class="pipeline-head">
+                      <span>{{ p.etiqueta }}</span>
+                      <strong>{{ p.cantidad }}</strong>
+                    </div>
+                    <div class="pipeline-bar">
+                      <div
+                        class="pipeline-fill"
+                        [style.width.%]="pipelinePct(p.cantidad, pipelineTotal(imp))"
+                      ></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </nb-card-body>
+          </nb-card>
+
+          <nb-card class="ranking-card">
+            <nb-card-header>Alertas — ETA vencida</nb-card-header>
+            <nb-card-body>
+              @if (imp.alertas.length) {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Vehículo</th>
+                      <th>Cliente</th>
+                      <th>Estado</th>
+                      <th>Días</th>
+                      <th>ETA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (a of imp.alertas; track a.codigo) {
+                      <tr>
+                        <td class="col-id">{{ a.codigo }}</td>
+                        <td>{{ a.vehiculo }}</td>
+                        <td>{{ a.cliente }}</td>
+                        <td>{{ estadoImportacionLabel(a.estado) }}</td>
+                        <td class="col-alert">{{ a.diasEnProceso }}</td>
+                        <td>{{ a.fechaEstimadaEntrega }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="empty-msg">No hay importaciones retrasadas.</p>
+              }
+            </nb-card-body>
+          </nb-card>
+        } @else {
+          <nb-alert status="info" [closable]="false">Reporte de importaciones no disponible. Verifique MS-1.</nb-alert>
+        }
+      }
+
+      @case ('documentos') {
+        @if (documentos(); as doc) {
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-mes">
+              <span class="kpi-label">Total documentos</span>
+              <span class="kpi-value">{{ doc.total }}</span>
+            </div>
+            <div class="kpi-card kpi-ventas">
+              <span class="kpi-label">Verificados</span>
+              <span class="kpi-value">{{ doc.verificados }}</span>
+            </div>
+            <div class="kpi-card kpi-pendientes">
+              <span class="kpi-label">Pendientes / revisión</span>
+              <span class="kpi-value">{{ doc.pendientes + doc.enRevision }}</span>
+            </div>
+            <div class="kpi-card kpi-alert">
+              <span class="kpi-label">Sin archivo</span>
+              <span class="kpi-value">{{ doc.sinArchivo }}</span>
+            </div>
+          </div>
+
+          <nb-card class="section-card">
+            <nb-card-header>Cumplimiento documental · {{ doc.completitudPct }}% verificado</nb-card-header>
+            <nb-card-body>
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>Total</th>
+                    <th>Verificados</th>
+                    <th>Sin archivo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (t of doc.porTipo; track t.tipo) {
+                    <tr>
+                      <td>{{ t.nombre }}</td>
+                      <td>{{ t.total }}</td>
+                      <td class="col-money">{{ t.verificados }}</td>
+                      <td [class.col-alert]="t.sinArchivo > 0">{{ t.sinArchivo }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </nb-card-body>
+          </nb-card>
+        } @else {
+          <nb-alert status="info" [closable]="false">Reporte documental no disponible. Verifique MS-3.</nb-alert>
+        }
+      }
+
+      @case ('finanzas') {
+        @if (finanzas(); as fin) {
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-alert">
+              <span class="kpi-label">Por cobrar</span>
+              <span class="kpi-value">{{ formatCompact(fin.montoPorCobrar) }}</span>
+            </div>
+            <div class="kpi-card kpi-ventas">
+              <span class="kpi-label">Cobrado</span>
+              <span class="kpi-value">{{ formatCompact(fin.montoCobrado) }}</span>
+            </div>
+            <div class="kpi-card kpi-mes">
+              <span class="kpi-label">Total facturado</span>
+              <span class="kpi-value">{{ formatCompact(fin.montoTotalFacturado) }}</span>
+            </div>
+            <div class="kpi-card kpi-pendientes">
+              <span class="kpi-label">Facturas emitidas</span>
+              <span class="kpi-value">{{ fin.facturasEmitidas }}</span>
+            </div>
+          </div>
+
+          <div class="sections-grid">
+            <nb-card class="section-card">
+              <nb-card-header>Estado de facturas</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Emitidas (por cobrar)</span><strong>{{ fin.facturasEmitidas }}</strong></li>
+                  <li><span>Pagadas</span><strong>{{ fin.facturasPagadas }}</strong></li>
+                  <li><span>Borrador</span><strong>{{ fin.facturasBorrador }}</strong></li>
+                  <li><span>Anuladas</span><strong>{{ fin.facturasAnuladas }}</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+
+            <nb-card class="section-card">
+              <nb-card-header>Indicadores de cobranza</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  <li><span>Tasa de cobranza</span><strong>{{ tasaCobranza(fin) | percent:'1.1-1' }}</strong></li>
+                  <li><span>Facturas &gt; 30 días</span><strong [class.col-alert-text]="facturasVencidas30(fin) > 0">{{ facturasVencidas30(fin) }}</strong></li>
+                  <li><span>Promedio días pendientes</span><strong>{{ promedioDiasPendientes(fin) }} días</strong></li>
+                </ul>
+              </nb-card-body>
+            </nb-card>
+          </div>
+
+          <nb-card class="ranking-card">
+            <nb-card-header>Cuentas por cobrar</nb-card-header>
+            <nb-card-body>
+              @if (fin.pendientesCobro.length) {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Factura</th>
+                      <th>Cliente</th>
+                      <th>Vehículo</th>
+                      <th>Monto</th>
+                      <th>Días</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (f of fin.pendientesCobro; track f.numeroFactura) {
+                      <tr>
+                        <td class="col-id">{{ f.numeroFactura }}</td>
+                        <td>{{ f.cliente }}</td>
+                        <td>{{ f.vehiculo }}</td>
+                        <td class="col-money">{{ f.monto | currency:'USD':'symbol':'1.0-0' }}</td>
+                        <td [class.col-alert]="f.diasDesdeEmision > 30">{{ f.diasDesdeEmision }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="empty-msg">No hay facturas pendientes de cobro.</p>
+              }
+            </nb-card-body>
+          </nb-card>
+        } @else {
+          <nb-alert status="info" [closable]="false">Reporte financiero no disponible. Verifique MS-1.</nb-alert>
+        }
+      }
+
+      @case ('inspeccion') {
+        @if (inspeccion(); as ins) {
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-mes">
+              <span class="kpi-label">Inspecciones</span>
+              <span class="kpi-value">{{ ins.totalInspecciones }}</span>
+            </div>
+            <div class="kpi-card kpi-alert">
+              <span class="kpi-label">Con daños</span>
+              <span class="kpi-value">{{ ins.conDanos }}</span>
+            </div>
+            <div class="kpi-card kpi-ventas">
+              <span class="kpi-label">Sin daños</span>
+              <span class="kpi-value">{{ ins.sinDanos }}</span>
+            </div>
+            <div class="kpi-card kpi-pendientes">
+              <span class="kpi-label">Costo reparación est.</span>
+              <span class="kpi-value">{{ formatCompact(ins.costoReparacionEstimado) }}</span>
+            </div>
+          </div>
+
+          <div class="sections-grid">
+            <nb-card class="section-card">
+              <nb-card-header>Por severidad</nb-card-header>
+              <nb-card-body>
+                <ul class="metric-list">
+                  @for (s of ins.porSeveridad | keyvalue; track s.key) {
+                    <li><span>{{ s.key }}</span><strong>{{ s.value }}</strong></li>
+                  }
+                </ul>
+              </nb-card-body>
+            </nb-card>
+          </div>
+
+          <nb-card class="ranking-card">
+            <nb-card-header>Últimas inspecciones</nb-card-header>
+            <nb-card-body>
+              @if (ins.ultimasInspecciones.length) {
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Vehículo</th>
+                      <th>VIN</th>
+                      <th>Resultado</th>
+                      <th>Daños</th>
+                      <th>Costo est.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (u of ins.ultimasInspecciones; track u.vin) {
+                      <tr>
+                        <td>{{ u.vehiculo }}</td>
+                        <td class="col-id">{{ u.vin }}</td>
+                        <td>{{ u.resultado }}</td>
+                        <td [class.col-alert]="u.danosDetectados > 0">{{ u.danosDetectados }}</td>
+                        <td class="col-money">{{ u.costoReparacion | currency:'USD':'symbol':'1.0-0' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              } @else {
+                <p class="empty-msg">Sin inspecciones registradas.</p>
+              }
+            </nb-card-body>
+          </nb-card>
+        } @else {
+          <nb-alert status="info" [closable]="false">Reporte de inspección no disponible. Verifique MS-3.</nb-alert>
+        }
+      }
     }
   }
 </div>

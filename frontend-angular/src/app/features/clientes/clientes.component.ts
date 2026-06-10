@@ -149,7 +149,7 @@ export class ClientesComponent implements OnInit {
 
   tomarCliente(c: Cliente): void {
     if (!this.auth.hasRole('VENDEDOR')) return;
-    if (!confirm(`¿Tomar este cliente para tu cartera? (${c.nombreCompleto})`)) return;
+
     this.togglingId.set(c.id);
     this.api.asignarClienteAMi(c.id).subscribe({
       next: (updated) => {

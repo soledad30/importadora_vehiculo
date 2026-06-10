@@ -3,6 +3,7 @@ package com.importadora.principal.api.dto;
 import com.importadora.principal.domain.model.Cliente;
 import com.importadora.principal.domain.model.EstadoFactura;
 import com.importadora.principal.domain.model.Factura;
+import com.importadora.principal.domain.model.MetodoPagoFactura;
 import com.importadora.principal.domain.model.Pedido;
 import com.importadora.principal.domain.model.Vehiculo;
 import com.importadora.principal.domain.model.Vendedor;
@@ -17,6 +18,12 @@ public record FacturaResponse(
         String pedidoCodigo,
         String numeroFactura,
         BigDecimal monto,
+        BigDecimal subtotal,
+        BigDecimal isv,
+        String cai,
+        String rtnEmisor,
+        String rtnCliente,
+        MetodoPagoFactura metodoPago,
         EstadoFactura estado,
         LocalDate fechaEmision,
         Long clienteId,
@@ -72,6 +79,12 @@ public record FacturaResponse(
                 pedidoCodigo,
                 f.getNumeroFactura(),
                 f.getMonto(),
+                f.getSubtotal(),
+                f.getIsv(),
+                f.getCai(),
+                f.getRtnEmisor(),
+                f.getRtnCliente(),
+                f.getMetodoPago(),
                 f.getEstado(),
                 f.getFechaEmision(),
                 cliente.getId(),

@@ -73,9 +73,15 @@ export class FacturasComponent implements OnInit {
   }
 
   openCreate(): void {
+    const pedidosConFactura = new Set(this.items().map((f) => f.pedidoId));
+    const pedidosDisponibles = this.pedidos().filter((p) => !pedidosConFactura.has(p.id));
+    if (!pedidosDisponibles.length) {
+      this.error.set('No hay pedidos sin factura. Todos los pedidos activos ya están facturados.');
+      return;
+    }
     this.dialog
       .open(FacturaFormDialogComponent, {
-        context: { pedidos: this.pedidos() },
+        context: { pedidos: pedidosDisponibles },
         closeOnBackdropClick: false,
         autoFocus: false,
         dialogClass: 'cliente-dialog-panel'
@@ -86,9 +92,18 @@ export class FacturasComponent implements OnInit {
   }
 
   emitir(id: number): void {
+    this.error.set(null);
     this.api.emitirFactura(id).subscribe({
       next: () => this.load(),
       error: (err) => this.error.set(err?.error?.detail ?? 'Error al emitir factura')
+    });
+  }
+
+  marcarPagada(id: number): void {
+    this.error.set(null);
+    this.api.marcarFacturaPagada(id).subscribe({
+      next: () => this.load(),
+      error: (err) => this.error.set(err?.error?.detail ?? 'Error al marcar factura como pagada')
     });
   }
 

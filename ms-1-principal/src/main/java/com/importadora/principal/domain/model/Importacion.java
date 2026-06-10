@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 
@@ -79,6 +80,37 @@ public class Importacion {
 
     private LocalDate fechaEstimadaEntrega;
 
+    @Column(name = "numero_dua", length = 40)
+    private String numeroDua;
+
+    @Column(name = "agente_aduanal", length = 120)
+    private String agenteAduanal;
+
+    @Column(name = "monto_dai", precision = 14, scale = 2)
+    private BigDecimal montoDai;
+
+    @Column(name = "monto_isc", precision = 14, scale = 2)
+    private BigDecimal montoIsc;
+
+    @Column(name = "monto_iva_aduana", precision = 14, scale = 2)
+    private BigDecimal montoIvaAduana;
+
+    @Column(name = "monto_total_impuestos", precision = 14, scale = 2)
+    private BigDecimal montoTotalImpuestos;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago_aduana", length = 20)
+    private EstadoPagoAduana estadoPagoAduana;
+
+    @Column(name = "comprobante_pago_sunca", length = 60)
+    private String comprobantePagoSunca;
+
+    @Column(name = "fecha_pago_aduana")
+    private LocalDate fechaPagoAduana;
+
+    @Column(name = "referencia_poliza", length = 40)
+    private String referenciaPoliza;
+
     @Column(nullable = false, updatable = false)
     private Instant creadoEn;
 
@@ -95,6 +127,9 @@ public class Importacion {
         }
         if (fechaInicio == null) {
             fechaInicio = LocalDate.now();
+        }
+        if (estadoPagoAduana == null) {
+            estadoPagoAduana = EstadoPagoAduana.PENDIENTE;
         }
     }
 

@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],
     password: ['', Validators.required],
-    rememberMe: [true]
+    rememberMe: [false]
   });
 
   ngOnInit(): void {
@@ -77,7 +77,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Credenciales inválidas. Verifique usuario y contraseña.');
+        this.error.set(this.resolveLoginError(err));
       }
     });
   }
@@ -113,6 +113,22 @@ export class LoginComponent implements OnInit, AfterViewInit {
     });
     this.googleInitialized = true;
     return true;
+  }
+
+  private resolveLoginError(err: { status?: number; error?: { detail?: string } }): string {
+    if (err?.error?.detail) {
+      return err.error.detail;
+    }
+    if (!err?.status) {
+      return 'No se pudo conectar con el servidor. Verifique que MS-1 (puerto 8080) esté activo y que abra la app en http://localhost:4200 (no en otro puerto).';
+    }
+    if (err.status === 404 || err.status === 502 || err.status === 504) {
+      return 'El proxy de Angular no alcanza el backend. Use http://localhost:4200 con npm start y confirme que MS-1 corre en el puerto 8080.';
+    }
+    if (err.status >= 500) {
+      return 'Error del servidor. Intente de nuevo en unos segundos.';
+    }
+    return 'Credenciales inválidas. Verifique usuario y contraseña.';
   }
 
   private onGoogleCredential(idToken: string): void {

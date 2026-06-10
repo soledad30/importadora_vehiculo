@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Inspección con Inteligencia Artificial</h1>
-      <p class="page-sub">Detección de daños, reconocimiento de modelos y OCR con Deep Learning <span class="ms-tag">MS-3</span></p>
+      <!--p class="page-sub">Inspección 360° (4 vistas) · detección de daños, modelo y OCR <span class="ms-tag">MS-3</span></p-->
     </div>
     <button type="button" nbButton status="warning" (click)="openNueva()">
       <nb-icon icon="plus-outline" /> Nueva Inspección
@@ -19,9 +19,48 @@
         <p class="meta">VIN: {{ ins.vin }} | Fecha: {{ ins.fecha }}</p>
         <div class="activa-grid">
           <div class="foto-placeholder">
-            <nb-icon icon="image-outline" />
-            <span>[Foto Vehículo]</span>
-            <small>Análisis en Progreso...</small>
+            @if (ins.fotos360 && ins.modoInspeccion === '360') {
+              <div class="fotos-360-preview">
+                @if (ins.fotos360['delante']) {
+                  <figure>
+                    <img [src]="ins.fotos360['delante']!" alt="Vista delantera" class="foto-inspeccion" />
+                    <figcaption>Delante</figcaption>
+                  </figure>
+                }
+                @if (ins.fotos360['detras']) {
+                  <figure>
+                    <img [src]="ins.fotos360['detras']!" alt="Vista trasera" class="foto-inspeccion" />
+                    <figcaption>Detrás</figcaption>
+                  </figure>
+                }
+                @if (ins.fotos360['izquierda']) {
+                  <figure>
+                    <img [src]="ins.fotos360['izquierda']!" alt="Lado izquierdo" class="foto-inspeccion" />
+                    <figcaption>Izquierda</figcaption>
+                  </figure>
+                }
+                @if (ins.fotos360['derecha']) {
+                  <figure>
+                    <img [src]="ins.fotos360['derecha']!" alt="Lado derecho" class="foto-inspeccion" />
+                    <figcaption>Derecha</figcaption>
+                  </figure>
+                }
+              </div>
+            } @else if (ins.fotoUrl) {
+              <img [src]="ins.fotoUrl" [alt]="ins.vehiculo" class="foto-inspeccion" />
+            } @else {
+              <nb-icon icon="image-outline" />
+              <span>[Foto Vehículo]</span>
+            }
+            <small>{{ ins.resultado || 'Análisis completado' }}</small>
+            @if (ins.modoInspeccion === '360') {
+              <small class="modo-tag">Inspección 360° · 4 vistas</small>
+            }
+            @if (ins.validacionCalidad?.consistenciaMinima != null) {
+              <small class="validacion-tag">
+                Coherencia entre vistas: {{ ins.validacionCalidad!.consistenciaMinima }}%
+              </small>
+            }
           </div>
           <div class="resultados">
             <h4>RESULTADOS DEL ANÁLISIS</h4>
@@ -62,6 +101,7 @@
     <nb-card>
       <nb-card-header>OCR — EXTRACCIÓN DE DOCUMENTOS</nb-card-header>
       <nb-card-body>
+        @if (ins.ocr) {
         <div class="ocr-grid">
           <div class="foto-placeholder doc">
             <nb-icon icon="file-text-outline" />
@@ -76,9 +116,18 @@
               <li><span>Estado</span><strong>{{ ins.ocr.estado }}</strong></li>
               <li><span>Fecha Emisión</span><strong>{{ ins.ocr.fechaEmision }}</strong></li>
               <li><span>Tipo</span><strong>{{ ins.ocr.tipoTitulo }}</strong></li>
+              @if (ins.ocr.confianza != null) {
+                <li><span>Confianza OCR</span><strong>{{ ins.ocr.confianza }}%</strong></li>
+              }
             </ul>
           </div>
         </div>
+        } @else {
+          <p class="ocr-empty">
+            Sin datos OCR. Suba un título o factura en «Nueva Inspección», o registre el documento en
+            <strong>Documentos</strong> con el mismo VIN (se vincula automáticamente).
+          </p>
+        }
       </nb-card-body>
     </nb-card>
 

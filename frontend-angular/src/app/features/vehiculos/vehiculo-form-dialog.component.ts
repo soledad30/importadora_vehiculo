@@ -10,10 +10,12 @@ import {
   NbSelectModule,
   NbSpinnerModule
 } from '@nebular/theme';
+import { MarcaPickerComponent } from '../../core/components/marca-picker/marca-picker.component';
 import { ApiService } from '../../core/services/api.service';
 import { Vehiculo } from '../../core/models';
 
 export type VehiculoDialogMode = 'create' | 'edit';
+export type ModoImagenVehiculo = 'url' | 'archivo';
 
 export interface VehiculoDialogContext {
   mode: VehiculoDialogMode;
@@ -31,7 +33,8 @@ export interface VehiculoDialogContext {
     NbSelectModule,
     NbOptionModule,
     NbAlertModule,
-    NbSpinnerModule
+    NbSpinnerModule,
+    MarcaPickerComponent
   ],
   templateUrl: './vehiculo-form-dialog.component.html',
   styleUrl: './vehiculo-form-dialog.component.scss'
@@ -45,7 +48,11 @@ export class VehiculoFormDialogComponent implements OnInit {
   @Input() vehiculo?: Vehiculo;
 
   readonly saving = signal(false);
+  readonly uploading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly modoImagen = signal<ModoImagenVehiculo>('url');
+  readonly previewUrl = signal<string | null>(null);
+  readonly archivoNombre = signal<string | null>(null);
 
   readonly estados = ['DISPONIBLE', 'RESERVADO', 'EN_IMPORTACION', 'VENDIDO'] as const;
 
@@ -67,6 +74,7 @@ export class VehiculoFormDialogComponent implements OnInit {
   ngOnInit(): void {
     const v = this.vehiculo;
     if (v) {
+      const url = v.imagenUrl ?? '';
       this.form.patchValue({
         vin: v.vin,
         marca: v.marca,
@@ -75,9 +83,62 @@ export class VehiculoFormDialogComponent implements OnInit {
         color: v.color,
         precio: v.precio,
         estado: v.estado,
-        imagenUrl: v.imagenUrl ?? ''
+        imagenUrl: url
       });
+      if (url) {
+        this.previewUrl.set(url);
+        this.modoImagen.set(url.startsWith('/api/') ? 'archivo' : 'url');
+      }
     }
+  }
+
+  setModoImagen(modo: ModoImagenVehiculo): void {
+    this.modoImagen.set(modo);
+    this.error.set(null);
+    if (modo === 'url') {
+      this.archivoNombre.set(null);
+    }
+  }
+
+  onUrlChange(): void {
+    const url = this.form.controls.imagenUrl.value.trim();
+    this.previewUrl.set(url || null);
+  }
+
+  onArchivoSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const archivo = input.files?.[0];
+    if (!archivo) return;
+
+    if (!archivo.type.startsWith('image/')) {
+      this.error.set('Seleccione un archivo de imagen (JPG, PNG, WEBP o GIF)');
+      input.value = '';
+      return;
+    }
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.error.set('La imagen no puede superar 5 MB');
+      input.value = '';
+      return;
+    }
+
+    this.uploading.set(true);
+    this.error.set(null);
+    this.archivoNombre.set(archivo.name);
+    this.previewUrl.set(URL.createObjectURL(archivo));
+
+    this.api.uploadVehiculoImagen(archivo).subscribe({
+      next: (res) => {
+        this.form.patchValue({ imagenUrl: res.url });
+        this.uploading.set(false);
+      },
+      error: (err) => {
+        this.uploading.set(false);
+        this.previewUrl.set(null);
+        this.archivoNombre.set(null);
+        this.error.set(err?.error?.detail ?? 'No se pudo subir la imagen');
+        input.value = '';
+      }
+    });
   }
 
   cancel(): void {
@@ -85,7 +146,7 @@ export class VehiculoFormDialogComponent implements OnInit {
   }
 
   save(): void {
-    if (this.form.invalid) {
+    if (this.form.invalid || this.uploading()) {
       this.form.markAllAsTouched();
       return;
     }

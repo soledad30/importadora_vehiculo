@@ -1,0 +1,91 @@
+.mi-cuenta-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.page-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-hint-color);
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.cuenta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.cuenta-card {
+  margin: 0;
+  border: 1px solid rgba(91, 124, 255, 0.25);
+
+  nb-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #5b7cff;
+  }
+}
+
+.cuenta-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(91, 124, 255, 0.08);
+  font-size: 0.85rem;
+  color: var(--text-hint-color);
+
+  strong {
+    color: var(--text-basic-color);
+  }
+}
+
+.cuenta-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-hint-color);
+  }
+
+  button[type='submit'] {
+    margin-top: 0.35rem;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .cuenta-grid {
+    grid-template-columns: 1fr;
+  }
+}

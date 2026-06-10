@@ -98,6 +98,34 @@
         </nb-card>
         }
 
+        @if (canOps() && (prediccionDemanda() != null || totalAnomalias() != null)) {
+        <nb-card class="ml-card">
+          <nb-card-header>Inteligencia MS-2 <span class="ms-tag">ML</span></nb-card-header>
+          <nb-card-body>
+            <div class="ml-kpi-grid">
+              @if (prediccionDemanda() != null) {
+                <div class="ml-kpi">
+                  <span class="ml-value">{{ prediccionDemanda() }}</span>
+                  <span class="ml-label">Demanda proyectada (3 meses)</span>
+                </div>
+              }
+              @if (totalAnomalias() != null) {
+                <div class="ml-kpi">
+                  <span class="ml-value">{{ totalAnomalias() }}</span>
+                  <span class="ml-label">Anomalías detectadas</span>
+                </div>
+              }
+              @if (tendenciaHistorica()) {
+                <div class="ml-kpi">
+                  <span class="ml-value ml-trend">{{ tendenciaHistorica() }}</span>
+                  <span class="ml-label">Tendencia histórica</span>
+                </div>
+              }
+            </div>
+          </nb-card-body>
+        </nb-card>
+        }
+
         <nb-card class="actividad-card">
           <nb-card-header>{{ isCliente() ? 'Mis Pedidos Recientes' : 'Actividad Reciente' }}</nb-card-header>
           <nb-card-body>

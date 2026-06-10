@@ -1,0 +1,128 @@
+<div class="mi-cuenta-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'account.title' | translate }}</h1>
+      <p class="page-sub">{{ 'account.subtitle' | translate }}</p>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
+  } @else {
+    @if (error()) {
+      <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+    }
+    @if (success()) {
+      <nb-alert status="success" [closable]="true" (close)="success.set(null)">{{ success() }}</nb-alert>
+    }
+
+    <div class="cuenta-grid">
+      <nb-card class="cuenta-card">
+        <nb-card-header>
+          <nb-icon icon="person-outline" />
+          {{ 'account.personalData' | translate }}
+        </nb-card-header>
+        <nb-card-body>
+          @if (perfil(); as p) {
+            <div class="cuenta-meta">
+              <span><strong>{{ 'account.user' | translate }}:</strong> {{ p.username }}</span>
+              <span><strong>{{ 'account.role' | translate }}:</strong> {{ p.rol }}</span>
+              @if (p.cliente?.codigo) {
+                <span><strong>{{ 'account.code' | translate }}:</strong> {{ p.cliente?.codigo }}</span>
+              }
+              @if (p.vendedor?.codigo) {
+                <span><strong>{{ 'account.code' | translate }}:</strong> {{ p.vendedor?.codigo }}</span>
+              }
+            </div>
+          }
+
+          <form class="cuenta-form" [formGroup]="perfilForm" (ngSubmit)="savePerfil()">
+            @if (!isAdmin()) {
+              <label>
+                {{ 'account.fullName' | translate }}
+                <input nbInput fullWidth formControlName="nombreCompleto" />
+              </label>
+            }
+
+            <label>
+              {{ 'account.email' | translate }}
+              <input nbInput fullWidth type="email" formControlName="email" />
+            </label>
+
+            @if (!isAdmin()) {
+              <label>
+                {{ 'account.phone' | translate }}
+                <input nbInput fullWidth formControlName="telefono" />
+              </label>
+            }
+
+            @if (isCliente()) {
+              <label>
+                {{ 'account.address' | translate }}
+                <input nbInput fullWidth formControlName="direccion" />
+              </label>
+              <label>
+                {{ 'account.city' | translate }}
+                <input nbInput fullWidth formControlName="ciudad" />
+              </label>
+            }
+
+            @if (isVendedor()) {
+              <label>
+                {{ 'account.zone' | translate }}
+                <input nbInput fullWidth formControlName="zonaAsignada" />
+              </label>
+            }
+
+            <button type="submit" nbButton status="primary" [disabled]="saving()">
+              @if (saving()) {
+                <nb-spinner size="tiny" status="control" />
+              } @else {
+                {{ 'account.save' | translate }}
+              }
+            </button>
+          </form>
+        </nb-card-body>
+      </nb-card>
+
+      <nb-card class="cuenta-card" id="contrasena">
+        <nb-card-header>
+          <nb-icon icon="lock-outline" />
+          {{ 'account.changePassword' | translate }}
+        </nb-card-header>
+        <nb-card-body>
+          @if (passwordError()) {
+            <nb-alert status="danger" [closable]="false">{{ passwordError() }}</nb-alert>
+          }
+          @if (passwordSuccess()) {
+            <nb-alert status="success" [closable]="true" (close)="passwordSuccess.set(null)">
+              {{ passwordSuccess() }}
+            </nb-alert>
+          }
+
+          <form class="cuenta-form" [formGroup]="passwordForm" (ngSubmit)="savePassword()">
+            <label>
+              {{ 'account.currentPassword' | translate }}
+              <input nbInput fullWidth type="password" formControlName="contrasenaActual" autocomplete="current-password" />
+            </label>
+            <label>
+              {{ 'account.newPassword' | translate }}
+              <input nbInput fullWidth type="password" formControlName="contrasenaNueva" autocomplete="new-password" />
+            </label>
+            <label>
+              {{ 'account.confirmPassword' | translate }}
+              <input nbInput fullWidth type="password" formControlName="confirmarContrasena" autocomplete="new-password" />
+            </label>
+            <button type="submit" nbButton status="warning" [disabled]="savingPassword()">
+              @if (savingPassword()) {
+                <nb-spinner size="tiny" status="control" />
+              } @else {
+                {{ 'account.updatePassword' | translate }}
+              }
+            </button>
+          </form>
+        </nb-card-body>
+      </nb-card>
+    </div>
+  }
+</div>

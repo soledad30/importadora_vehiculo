@@ -33,6 +33,12 @@
         <nb-option value="EN_IMPORTACION">En importación</nb-option>
         <nb-option value="VENDIDO">Vendido</nb-option>
       </nb-select>
+      <nb-select placeholder="Marca" [selected]="filterMarca()" (selectedChange)="filterMarca.set($event)">
+        <nb-option value="TODAS">Todas las marcas</nb-option>
+        @for (marca of marcasDisponibles; track marca) {
+          <nb-option [value]="marca">{{ marca }}</nb-option>
+        }
+      </nb-select>
     </div>
   }
 
@@ -70,7 +76,12 @@
             </div>
           </nb-card-header>
           <nb-card-body>
-            <h3 class="vehiculo-name">{{ tituloVehiculo(v) }}</h3>
+            <h3 class="vehiculo-name">
+              @if (logoMarca(v.marca); as logo) {
+                <img class="vehiculo-marca-logo" [src]="logo" [alt]="v.marca" />
+              }
+              {{ tituloVehiculo(v) }}
+            </h3>
             <dl class="vehiculo-specs">
               <div><dt>VIN</dt><dd>{{ v.vin }}</dd></div>
               <div><dt>MARCA</dt><dd>{{ v.marca }}</dd></div>
@@ -79,9 +90,21 @@
               <div><dt>COLOR</dt><dd>{{ v.color }}</dd></div>
               <div><dt>PRECIO</dt><dd>{{ v.precio | currency:'USD':'symbol':'1.0-0' }}</dd></div>
             </dl>
+            @if (compraDe(v); as compra) {
+              <div class="compra-origen-badge">
+                <nb-icon icon="shopping-bag-outline" />
+                Origen: {{ labelProveedor(compra.tipoProveedor) }} — {{ compra.proveedor }}
+                · FOB {{ compra.precioFob | currency:'USD':'symbol':'1.0-0' }}
+              </div>
+            }
             <div class="card-footer-actions">
               @if (canEdit()) {
                 <button type="button" nbButton size="small" status="info" (click)="openEdit(v)">EDITAR</button>
+                @if (!compraDe(v)) {
+                  <button type="button" nbButton size="small" status="warning" (click)="openCompraOrigen(v)">
+                    Compra origen
+                  </button>
+                }
               }
               <button type="button" nbButton size="small" [status]="estadoStatus(v.estado)" class="estado-btn">
                 {{ v.estado }}

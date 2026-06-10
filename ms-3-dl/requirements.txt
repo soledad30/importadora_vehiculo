@@ -1,0 +1,14 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+httpx==0.28.1
+PyJWT==2.10.1
+python-dotenv==1.0.1
+pillow==11.1.0
+numpy==2.2.3
+boto3==1.36.21
+pypdf>=5.1.0
+
+# Deep Learning — YOLO local y/o inferencia Roboflow cloud
+ultralytics>=8.3.0
+roboflow>=1.1.50

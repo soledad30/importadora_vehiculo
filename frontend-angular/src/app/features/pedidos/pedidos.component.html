@@ -4,10 +4,10 @@
       <h1 class="page-title">{{ pageTitle() }}</h1>
       <p class="page-sub">{{ pageSubtitle() }}</p>
     </div>
-    @if (canManage()) {
+    @if (canManage() || isCliente()) {
       <button type="button" nbButton status="warning" (click)="openCreate()">
         <nb-icon icon="plus-outline" />
-        Nuevo Pedido
+        {{ isCliente() ? 'Solicitar vehículo' : 'Nuevo Pedido' }}
       </button>
     }
   </header>
@@ -91,9 +91,9 @@
                     </span>
                   </td>
                   <td>{{ p.creadoEn | date:'yyyy-MM-dd' }}</td>
-                  <td>
+                  <td class="col-acciones">
                     <button type="button" nbButton size="small" status="info" (click)="ver(p)">Ver</button>
-                    @if (auth.hasRole('VENDEDOR') && !p.vendedorUsername) {
+                    @if (puedeTomarPedido(p)) {
                       <button type="button" nbButton size="small" status="success" (click)="tomarPedido(p)">
                         Tomar
                       </button>
@@ -135,6 +135,10 @@
             }
             @if (p.vendedorUsername) {
               <p class="detalle-notas muted">Vendedor: {{ p.vendedorUsername }}</p>
+            } @else if (auth.hasRole('VENDEDOR')) {
+              <p class="detalle-notas detalle-sin-vendedor">
+                Pedido del cliente sin vendedor asignado — tómalo para gestionarlo.
+              </p>
             }
           </div>
           <div class="detalle-img">
@@ -149,27 +153,93 @@
             }
           </div>
         </div>
+        @if (canManage() && !pedidoCerrado(p)) {
+          <div class="flujo-guia">
+            <div class="flujo-steps">
+              @for (paso of pasosFlujo(p); track paso.label) {
+                <span class="flujo-step" [class.done]="paso.done" [class.current]="paso.current">
+                  {{ paso.label }}
+                </span>
+              }
+            </div>
+            @if (siguienteAccion(p); as hint) {
+              <p class="flujo-hint">{{ hint }}</p>
+            }
+          </div>
+        }
         @if (canManage()) {
           <div class="detalle-actions">
-            <button
-              type="button"
-              nbButton
-              status="danger"
-              ghost
-              (click)="cerrarPorMotivo(p)"
-            >
-              Cerrar (motivo)
-            </button>
-            @if (p.estado === 'PENDIENTE') {
+            @if (puedeTomarPedido(p)) {
+              <button type="button" nbButton status="success" (click)="tomarPedido(p)">
+                Tomar pedido
+              </button>
+            }
+            @if (puedeAprobar(p)) {
               <button type="button" nbButton status="success" (click)="confirmar(p.id)">Aprobar</button>
+            }
+            @if (puedeIniciarImportacion(p)) {
+              <button type="button" nbButton status="primary" (click)="iniciarImportacion(p.id)">
+                Iniciar importación
+              </button>
+            }
+            @if (puedeInspeccionar(p)) {
+              <button type="button" nbButton status="info" (click)="inspeccionarPedido(p)">
+                Inspección IA
+              </button>
+            }
+            @if (puedeEntregar(p)) {
+              <button type="button" nbButton status="success" (click)="abrirEntrega(p)">
+                Entregar y traspasar
+              </button>
+            }
+            @if (puedeCancelar(p)) {
               <button type="button" nbButton status="danger" ghost (click)="cancelar(p.id)">Cancelar</button>
             }
-            @if (p.estado === 'CONFIRMADO') {
-              <button type="button" nbButton status="primary" (click)="iniciarImportacion(p.id)">Iniciar importación</button>
+            @if (puedeCerrarMotivo(p)) {
+              <button type="button" nbButton status="danger" ghost (click)="cerrarPorMotivo(p)">
+                Cerrar (motivo)
+              </button>
             }
-            @if (p.estado === 'EN_IMPORTACION') {
-              <button type="button" nbButton status="success" (click)="entregar(p.id)">Completar entrega</button>
+            @if (puedeIntegracionDemo(p)) {
+              <button
+                type="button"
+                nbButton
+                status="warning"
+                ghost
+                [disabled]="flujoEjecutando()"
+                (click)="ejecutarFlujo(p)"
+              >
+                @if (flujoEjecutando()) {
+                  Probando integración…
+                } @else {
+                  Probar MS-2/MS-3
+                }
+              </button>
             }
+          </div>
+          @if (puedeIntegracionDemo(p)) {
+            <p class="integracion-nota">
+              <strong>Probar MS-2/MS-3</strong> (solo admin): verifica blockchain, ML y documentos sin cambiar el pedido.
+              Para inspección con foto use <strong>Inspección IA</strong>.
+            </p>
+          }
+        }
+        @if (entregaResultado(); as ent) {
+          <div class="flujo-resultado">
+            <h4>Entrega registrada — Acta {{ ent.actaNumero }}</h4>
+            <p>Recibido por: {{ ent.recibidoPor }} · Traspaso: {{ ent.numeroTraspaso }} ({{ ent.estadoTraspaso }})</p>
+          </div>
+        }
+        @if (flujoResultado(); as flujo) {
+          <div class="flujo-resultado">
+            <h4>Prueba de integración MS-2/MS-3 — {{ flujo.codigoPedido }}</h4>
+            <ul>
+              @for (paso of flujo.pasos; track paso.paso) {
+                <li [class]="'paso-' + paso.estado.toLowerCase()">
+                  <strong>{{ paso.paso }}. {{ paso.nombre }}</strong> — {{ paso.detalle }}
+                </li>
+              }
+            </ul>
           </div>
         }
       </nb-card-body>

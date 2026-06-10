@@ -1,12 +1,15 @@
 package com.importadora.principal.domain.service;
 
+import com.importadora.principal.api.dto.ImpuestosAduanaResponse;
 import com.importadora.principal.api.dto.ImportacionIniciarRequest;
 import com.importadora.principal.api.dto.ImportacionRequest;
 import com.importadora.principal.api.dto.ImportacionResponse;
+import com.importadora.principal.api.dto.PagoAduanaRequest;
 import com.importadora.principal.api.exception.BusinessRuleException;
 import com.importadora.principal.api.exception.DuplicateResourceException;
 import com.importadora.principal.api.exception.ResourceNotFoundException;
 import com.importadora.principal.domain.model.EstadoImportacion;
+import com.importadora.principal.domain.model.EstadoPagoAduana;
 import com.importadora.principal.domain.model.EstadoPedido;
 import com.importadora.principal.domain.model.EstadoVehiculo;
 import com.importadora.principal.domain.model.Importacion;
@@ -19,6 +22,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -27,6 +33,9 @@ public class ImportacionService {
 
     private static final String PAIS_ORIGEN_DEFAULT = "Estados Unidos";
     private static final String ADUANA_DEFAULT = "Puerto Cortés";
+    private static final BigDecimal TASA_DAI = new BigDecimal("0.15");
+    private static final BigDecimal TASA_ISC = new BigDecimal("0.10");
+    private static final BigDecimal TASA_IVA_ADUANA = new BigDecimal("0.15");
 
     private final ImportacionRepository importacionRepository;
     private final PedidoRepository pedidoRepository;
@@ -144,6 +153,51 @@ public class ImportacionService {
                 importacionRepository.findByIdWithRelations(guardada.getId()).orElse(guardada));
     }
 
+    @Transactional(readOnly = true)
+    public ImpuestosAduanaResponse calcularImpuestosAduana(Long id) {
+        Importacion importacion = importacionRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Importación no encontrada: id=" + id));
+        return construirImpuestosResponse(importacion);
+    }
+
+    @Transactional
+    public ImportacionResponse registrarPagoAduana(Long id, PagoAduanaRequest request) {
+        Importacion importacion = importacionRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Importación no encontrada: id=" + id));
+
+        if (importacion.getEstadoPagoAduana() == EstadoPagoAduana.PAGADO
+                || importacion.getEstadoPagoAduana() == EstadoPagoAduana.LIBERADO) {
+            throw new BusinessRuleException("El pago aduanero ya fue registrado");
+        }
+
+        ImpuestosAduanaResponse calculados = construirImpuestosResponse(importacion);
+        BigDecimal montoDai = request.montoDai() != null ? request.montoDai() : calculados.montoDai();
+        BigDecimal montoIsc = request.montoIsc() != null ? request.montoIsc() : calculados.montoIsc();
+        BigDecimal montoIva = request.montoIvaAduana() != null
+                ? request.montoIvaAduana()
+                : calculados.montoIvaAduana();
+        BigDecimal total = montoDai.add(montoIsc).add(montoIva);
+
+        importacion.setNumeroDua(request.numeroDua());
+        importacion.setAgenteAduanal(request.agenteAduanal());
+        importacion.setComprobantePagoSunca(request.comprobantePagoSunca());
+        importacion.setReferenciaPoliza(request.referenciaPoliza());
+        importacion.setMontoDai(montoDai);
+        importacion.setMontoIsc(montoIsc);
+        importacion.setMontoIvaAduana(montoIva);
+        importacion.setMontoTotalImpuestos(total);
+        importacion.setEstadoPagoAduana(EstadoPagoAduana.PAGADO);
+        importacion.setFechaPagoAduana(LocalDate.now());
+        if (importacion.getEstado() == EstadoImportacion.SOLICITADA
+                || importacion.getEstado() == EstadoImportacion.EN_TRANSITO) {
+            importacion.setEstado(EstadoImportacion.LIBERADA);
+        }
+
+        Importacion guardada = importacionRepository.save(importacion);
+        return ImportacionResponse.from(
+                importacionRepository.findByIdWithRelations(guardada.getId()).orElse(guardada));
+    }
+
     @Transactional
     public void completarPorPedido(Long pedidoId) {
         importacionRepository.findByPedidoId(pedidoId).ifPresent(importacion -> {
@@ -197,6 +251,27 @@ public class ImportacionService {
             vehiculo.setPaisOrigen(PAIS_ORIGEN_DEFAULT);
         }
         vehiculoRepository.save(vehiculo);
+    }
+
+    private ImpuestosAduanaResponse construirImpuestosResponse(Importacion importacion) {
+        BigDecimal valorCif = importacion.getPedido().getPrecioBase();
+        if (valorCif == null || valorCif.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessRuleException("El pedido no tiene precio base para calcular impuestos aduaneros");
+        }
+        BigDecimal montoDai = valorCif.multiply(TASA_DAI).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal montoIsc = valorCif.multiply(TASA_ISC).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal baseIva = valorCif.add(montoDai);
+        BigDecimal montoIva = baseIva.multiply(TASA_IVA_ADUANA).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal total = montoDai.add(montoIsc).add(montoIva);
+        return new ImpuestosAduanaResponse(
+                importacion.getId(),
+                importacion.getCodigo(),
+                valorCif,
+                montoDai,
+                montoIsc,
+                montoIva,
+                total
+        );
     }
 
     private String orDefault(String value, String defaultValue) {

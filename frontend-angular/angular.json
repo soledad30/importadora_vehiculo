@@ -29,6 +29,7 @@
               "node_modules/@nebular/theme/styles/prebuilt/default.css",
               "node_modules/@nebular/theme/styles/prebuilt/dark.css",
               "node_modules/eva-icons/style/eva-icons.css",
+              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -50,6 +51,12 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "port": 4200,
+            "host": "0.0.0.0",
+            "proxyConfig": "proxy.conf.json",
+            "allowedHosts": ["localhost", "127.0.0.1", ".localhost"]
+          },
           "configurations": {
             "production": { "buildTarget": "importadora-web:build:production" },
             "development": {

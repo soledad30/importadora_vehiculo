@@ -48,6 +48,7 @@ export class AuthService {
     nombreCompleto: string;
     email: string;
     telefono?: string;
+    cedulaDocumento: string;
     rol: RolUsuario;
     password: string;
     confirmPassword: string;
@@ -73,6 +74,14 @@ export class AuthService {
   hasRole(...roles: RolUsuario[]): boolean {
     const r = this.rol();
     return r != null && roles.includes(r);
+  }
+
+  patchUser(partial: Partial<LoginResponse>): void {
+    const current = this.userSignal();
+    if (!current) return;
+    const updated = { ...current, ...partial };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    this.userSignal.set(updated);
   }
 
   private persistSession(res: LoginResponse): void {

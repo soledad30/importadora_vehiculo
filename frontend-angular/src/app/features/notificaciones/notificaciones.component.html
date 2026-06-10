@@ -60,7 +60,22 @@
                 <p class="notif-flujo">Flujo: {{ n.flujo }}</p>
               }
               <time class="notif-fecha">{{ n.creadoEn | date:'dd/MM/yyyy HH:mm' }}</time>
-              @if (tieneDestino(n)) {
+              @if (esPrediccion(n)) {
+                <div class="notif-actions">
+                  <button
+                    type="button"
+                    nbButton
+                    size="tiny"
+                    status="primary"
+                    (click)="planificarImportacion(n, $event)"
+                  >
+                    Planificar importación
+                  </button>
+                  <button type="button" nbButton size="tiny" status="basic" (click)="abrir(n); $event.stopPropagation()">
+                    Ver análisis ML
+                  </button>
+                </div>
+              } @else if (tieneDestino(n)) {
                 <span class="notif-link-hint">Clic para abrir</span>
               }
             </div>

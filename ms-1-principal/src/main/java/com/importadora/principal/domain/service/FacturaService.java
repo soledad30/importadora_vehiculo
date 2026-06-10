@@ -17,12 +17,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class FacturaService {
+
+    private static final BigDecimal TASA_ISV = new BigDecimal("0.15");
+    private static final String CAI_DEMO = "A1B2C3D4-E5F6-7890-ABCD-EF1234567890";
+    private static final String RTN_EMISOR_DEMO = "0801-1990-123456";
 
     private final FacturaRepository facturaRepository;
     private final PedidoRepository pedidoRepository;
@@ -68,10 +74,36 @@ public class FacturaService {
             throw new BusinessRuleException("No se puede facturar un pedido PENDIENTE o CANCELADO");
         }
 
+        BigDecimal subtotal = request.subtotal();
+        BigDecimal isv = request.isv();
+        BigDecimal monto = request.monto();
+        if (subtotal == null && isv == null) {
+            subtotal = monto.divide(BigDecimal.ONE.add(TASA_ISV), 2, RoundingMode.HALF_UP);
+            isv = monto.subtract(subtotal);
+        } else if (subtotal != null && isv == null) {
+            isv = subtotal.multiply(TASA_ISV).setScale(2, RoundingMode.HALF_UP);
+            monto = subtotal.add(isv);
+        } else if (subtotal == null && isv != null) {
+            subtotal = monto.subtract(isv);
+        }
+
+        String cai = orDefault(request.cai(), CAI_DEMO);
+        String rtnEmisor = orDefault(request.rtnEmisor(), RTN_EMISOR_DEMO);
+        String rtnCliente = request.rtnCliente();
+        if (rtnCliente == null || rtnCliente.isBlank()) {
+            rtnCliente = pedido.getCliente().getNumeroDocumento();
+        }
+
         Factura factura = Factura.builder()
                 .pedido(pedido)
                 .numeroFactura(numeroFactura)
-                .monto(request.monto())
+                .monto(monto)
+                .subtotal(subtotal)
+                .isv(isv)
+                .cai(cai)
+                .rtnEmisor(rtnEmisor)
+                .rtnCliente(rtnCliente)
+                .metodoPago(request.metodoPago())
                 .estado(request.estado() != null ? request.estado() : EstadoFactura.BORRADOR)
                 .fechaEmision(request.fechaEmision())
                 .build();
@@ -82,10 +114,15 @@ public class FacturaService {
 
     @Transactional
     public FacturaResponse emitir(Long id) {
-        Factura factura = facturaRepository.findById(id)
+        Factura factura = facturaRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Factura no encontrada: id=" + id));
         if (factura.getEstado() != EstadoFactura.BORRADOR) {
             throw new BusinessRuleException("Solo se pueden emitir facturas en estado BORRADOR");
+        }
+        completarDatosFiscalesSiFaltan(factura);
+        validarDatosFiscales(factura);
+        if (factura.getFechaEmision() == null) {
+            factura.setFechaEmision(LocalDate.now());
         }
         factura.setEstado(EstadoFactura.EMITIDA);
         Factura guardada = facturaRepository.save(factura);
@@ -102,6 +139,40 @@ public class FacturaService {
         factura.setEstado(EstadoFactura.PAGADA);
         Factura guardada = facturaRepository.save(factura);
         return toResponse(facturaRepository.findByIdWithRelations(guardada.getId()).orElse(guardada));
+    }
+
+    private void completarDatosFiscalesSiFaltan(Factura factura) {
+        if (factura.getCai() == null || factura.getCai().isBlank()) {
+            factura.setCai(CAI_DEMO);
+        }
+        if (factura.getRtnEmisor() == null || factura.getRtnEmisor().isBlank()) {
+            factura.setRtnEmisor(RTN_EMISOR_DEMO);
+        }
+        if (factura.getRtnCliente() == null || factura.getRtnCliente().isBlank()) {
+            factura.setRtnCliente(factura.getPedido().getCliente().getNumeroDocumento());
+        }
+        if (factura.getSubtotal() == null || factura.getIsv() == null) {
+            BigDecimal monto = factura.getMonto();
+            BigDecimal subtotal = monto.divide(BigDecimal.ONE.add(TASA_ISV), 2, RoundingMode.HALF_UP);
+            factura.setSubtotal(subtotal);
+            factura.setIsv(monto.subtract(subtotal));
+        }
+    }
+
+    private void validarDatosFiscales(Factura factura) {
+        if (factura.getCai() == null || factura.getCai().isBlank()) {
+            throw new BusinessRuleException("CAI obligatorio para emitir factura fiscal");
+        }
+        if (factura.getRtnEmisor() == null || factura.getRtnEmisor().isBlank()) {
+            throw new BusinessRuleException("RTN del emisor obligatorio para factura fiscal");
+        }
+        if (factura.getSubtotal() == null || factura.getIsv() == null) {
+            throw new BusinessRuleException("Subtotal e ISV obligatorios para factura fiscal");
+        }
+    }
+
+    private String orDefault(String value, String defaultValue) {
+        return value != null && !value.isBlank() ? value : defaultValue;
     }
 
     private String generarNumeroFactura() {

@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Gestión de Documentos</h1>
-      <p class="page-sub">Subida, verificación y control de documentos de importación <span class="ms-tag">MS-3</span></p>
+      <p class="page-sub">Subida, verificación y control de documentos de importación <!--span class="ms-tag">MS-3</span></p-->
     </div>
     <button type="button" nbButton status="warning" (click)="openUpload()">
       <nb-icon icon="plus-outline" /> Subir Documento
@@ -36,17 +36,29 @@
       } @else {
         <table class="docs-table">
           <thead>
-            <tr><th>Documento</th><th>Vehículo</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Acción</th></tr>
+            <tr><th>Documento</th><th>Vehículo</th><th>Tipo</th><th>Fecha</th><th>Estado</th><th>Paso</th><th>Acción</th></tr>
           </thead>
           <tbody>
             @for (d of filtered(); track d.id) {
               <tr>
-                <td class="col-doc">{{ d.nombre }}</td>
+                <td class="col-doc">
+                  {{ d.nombre }}
+                  @if (d.tieneArchivo === false) {
+                    <span class="sin-archivo-badge">Sin archivo</span>
+                  }
+                </td>
                 <td>{{ d.vehiculo }}</td>
-                <td>{{ d.tipo }}</td>
+                <td>{{ tipoLabel(d.tipo) }}</td>
                 <td>{{ d.fecha }}</td>
                 <td><span [class]="estadoClass(d.estado)">{{ estadoLabel(d.estado) }}</span></td>
-                <td><button type="button" nbButton size="small" status="info">Ver</button></td>
+                <td class="col-paso">{{ pasoLabel(d.pasoActual) }}</td>
+                <td class="col-acciones">
+                  <button type="button" nbButton size="small" status="info" (click)="verDocumento(d.id)">Ver</button>
+                  @if (!d.tieneArchivo) {
+                    <button type="button" nbButton size="small" status="warning" (click)="subirArchivo(d)">Subir</button>
+                  }
+                  <button type="button" nbButton size="small" status="basic" (click)="editarDocumento(d)">Editar</button>
+                </td>
               </tr>
             }
           </tbody>
@@ -59,13 +71,19 @@
     <nb-card-header>FLUJO DE VERIFICACIÓN</nb-card-header>
     <nb-card-body>
       <div class="flujo-steps">
-        <span>Subida</span><nb-icon icon="arrow-forward-outline" />
-        <span>OCR/Scan</span><nb-icon icon="arrow-forward-outline" />
-        <span>Validación</span><nb-icon icon="arrow-forward-outline" />
-        <span>Aprobación</span><nb-icon icon="arrow-forward-outline" />
-        <span>Archivado S3</span>
+        @for (paso of pasosFlujo; track paso; let i = $index) {
+          <span>{{ paso }}</span>
+          @if (i < pasosFlujo.length - 1) {
+            <nb-icon icon="arrow-forward-outline" />
+          }
+        }
       </div>
-      <p class="flujo-note">Integración con MS-3 (OCR Deep Learning) y AWS S3 para almacenamiento seguro.</p>
+      <ul class="flujo-ayuda">
+        <li><strong>Sin archivo</strong> → clic en <em>Subir</em> o <em>Ver → Subir archivo</em></li>
+        <li><strong>Pendiente</strong> → revisar OCR → botón <em>Ejecutar OCR y pasar a validación</em></li>
+        <li><strong>En revisión</strong> → revisar datos OCR → botón <em>Aprobar documento</em></li>
+        <li><strong>Verificado</strong> → archivado en S3; use <em>Editar</em> para corregir metadatos</li>
+      </ul>
     </nb-card-body>
   </nb-card>
 </div>

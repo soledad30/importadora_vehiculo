@@ -4,6 +4,7 @@ import com.importadora.principal.domain.model.EstadoFactura;
 import com.importadora.principal.domain.model.Factura;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,4 +39,7 @@ public interface FacturaRepository extends JpaRepository<Factura, Long> {
     long countByEstado(EstadoFactura estado);
 
     long countByNumeroFacturaStartingWith(String prefix);
+
+    @Query("SELECT COALESCE(SUM(f.monto), 0) FROM Factura f WHERE f.estado = :estado")
+    java.math.BigDecimal sumMontoByEstado(@Param("estado") EstadoFactura estado);
 }

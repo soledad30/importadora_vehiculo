@@ -2,7 +2,7 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Cotizador de Importación</h1>
-      <p class="page-sub">Calcula el costo total de importar un vehículo (CIF + Impuestos + transporte) <span class="ms-tag">MS-2</span></p>
+      <p class="page-sub">Calcula el costo total de importar un vehículo (CIF + Impuestos + transporte) <!--span class="ms-tag">MS-2</span></p-->
     </div>
   </header>
 
@@ -13,8 +13,22 @@
         <form [formGroup]="form" class="form-grid">
           <div class="form-field"><label>Precio de Compra (USD)</label><input nbInput fullWidth type="number" formControlName="precioCompra" /></div>
           <div class="form-field"><label>País de Origen</label><input nbInput fullWidth formControlName="paisOrigen" /></div>
-          <div class="form-field"><label>Puerto de Embarque</label><input nbInput fullWidth formControlName="puertoEmbarque" /></div>
-          <div class="form-field"><label>Puerto de Destino</label><input nbInput fullWidth formControlName="puertoDestino" /></div>
+          <div class="form-field">
+            <label>Puerto de Embarque</label>
+            <nb-select formControlName="puertoEmbarque" fullWidth placeholder="Seleccione puerto de salida">
+              @for (p of puertosEmbarque; track p.value) {
+                <nb-option [value]="p.value">{{ p.label }}</nb-option>
+              }
+            </nb-select>
+          </div>
+          <div class="form-field">
+            <label>Puerto de Destino</label>
+            <nb-select formControlName="puertoDestino" fullWidth placeholder="Seleccione puerto de llegada">
+              @for (p of puertosDestino; track p.value) {
+                <nb-option [value]="p.value">{{ p.label }}</nb-option>
+              }
+            </nb-select>
+          </div>
           <div class="form-field"><label>Tipo de Vehículo</label><input nbInput fullWidth formControlName="tipoVehiculo" /></div>
           <div class="form-field"><label>Año del Vehículo</label><input nbInput fullWidth type="number" formControlName="anio" /></div>
           <div class="form-field"><label>Cilindrada (cc)</label><input nbInput fullWidth type="number" formControlName="cilindrada" /></div>

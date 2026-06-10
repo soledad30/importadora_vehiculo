@@ -1,0 +1,88 @@
+<div class="config-page">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">{{ 'config.title' | translate }}</h1>
+      <p class="page-sub">{{ 'config.subtitle' | translate }}</p>
+    </div>
+  </header>
+
+  @if (saved()) {
+    <nb-alert status="success" [closable]="true" (close)="saved.set(false)">
+      {{ 'config.saved' | translate }}
+    </nb-alert>
+  }
+
+  <div class="config-grid">
+    <nb-card>
+      <nb-card-header>
+        <nb-icon icon="globe-2-outline" />
+        {{ 'config.language' | translate }}
+      </nb-card-header>
+      <nb-card-body>
+        <label class="config-field">
+          <span>{{ 'config.language' | translate }}</span>
+          <nb-select fullWidth [(ngModel)]="language">
+            @for (opt of languageOptions; track opt.value) {
+              <nb-option [value]="opt.value">{{ opt.labelKey | translate }}</nb-option>
+            }
+          </nb-select>
+        </label>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>
+        <nb-icon icon="text-outline" />
+        {{ 'config.typography' | translate }}
+      </nb-card-header>
+      <nb-card-body>
+        <label class="config-field">
+          <span>{{ 'config.fontFamily' | translate }}</span>
+          <nb-select fullWidth [(ngModel)]="fontFamily" (ngModelChange)="onTypographyChange()">
+            @for (opt of fontFamilyOptions(); track opt.value) {
+              <nb-option [value]="opt.value">{{ opt.label }}</nb-option>
+            }
+          </nb-select>
+        </label>
+
+        <label class="config-field">
+          <span>{{ 'config.fontSize' | translate }}</span>
+          <nb-select fullWidth [(ngModel)]="fontSize" (ngModelChange)="onTypographyChange()">
+            @for (opt of fontSizeOptions(); track opt.value) {
+              <nb-option [value]="opt.value">{{ opt.label }}</nb-option>
+            }
+          </nb-select>
+        </label>
+
+        <div
+          class="font-preview-live"
+          [style.fontFamily]="previewFontFamily()"
+          [style.fontSize]="previewFontSize()"
+        >
+          {{ 'config.previewSample' | translate }}
+        </div>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card>
+      <nb-card-header>
+        <nb-icon icon="color-palette-outline" />
+        {{ 'config.appearance' | translate }}
+      </nb-card-header>
+      <nb-card-body>
+        <label class="config-field config-field-last">
+          <span>{{ 'config.theme' | translate }}</span>
+          <nb-select fullWidth [(ngModel)]="theme">
+            <nb-option value="dark">{{ 'config.themeDark' | translate }}</nb-option>
+            <nb-option value="default">{{ 'config.themeLight' | translate }}</nb-option>
+          </nb-select>
+        </label>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <div class="config-actions">
+    <button type="button" nbButton status="primary" (click)="save()">{{ 'config.save' | translate }}</button>
+    <button type="button" nbButton status="basic" (click)="reset()">{{ 'config.reset' | translate }}</button>
+  </div>
+</div>

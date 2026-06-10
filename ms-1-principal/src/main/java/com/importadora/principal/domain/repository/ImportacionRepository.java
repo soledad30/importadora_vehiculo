@@ -21,4 +21,6 @@ public interface ImportacionRepository extends JpaRepository<Importacion, Long> 
     Optional<Importacion> findByIdWithRelations(Long id);
 
     long countByEstadoNot(EstadoImportacion estado);
+
+    long countByEstado(EstadoImportacion estado);
 }

@@ -38,6 +38,17 @@
   grid-column: 1 / -1;
 }
 
+.form-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dialog-actions {
   display: flex;
   flex-direction: column;
@@ -98,6 +109,11 @@
 
 .preview-wide {
   grid-column: 1 / -1;
+}
+
+.field-error {
+  font-size: 0.72rem;
+  color: #ff3d71;
 }
 
 @media (max-width: 560px) {

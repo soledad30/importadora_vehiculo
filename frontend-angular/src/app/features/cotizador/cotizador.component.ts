@@ -1,24 +1,29 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { NbButtonModule, NbCardModule, NbInputModule, NbSpinnerModule } from '@nebular/theme';
+import { ActivatedRoute } from '@angular/router';
+import { NbButtonModule, NbCardModule, NbInputModule, NbOptionModule, NbSelectModule, NbSpinnerModule } from '@nebular/theme';
 import { CotizacionReciente, DesgloseCotizacion } from '../../core/models/ms-extensions';
-import { Ms2MockService } from '../../core/services/ms2-mock.service';
+import { PUERTOS_DESTINO, PUERTOS_EMBARQUE } from '../../core/constants/puertos-importacion';
+import { Ms2Service } from '../../core/services/ms2.service';
 
 @Component({
   selector: 'app-cotizador',
   standalone: true,
-  imports: [ReactiveFormsModule, CurrencyPipe, NbCardModule, NbButtonModule, NbInputModule, NbSpinnerModule],
+  imports: [ReactiveFormsModule, CurrencyPipe, NbCardModule, NbButtonModule, NbInputModule, NbSelectModule, NbOptionModule, NbSpinnerModule],
   templateUrl: './cotizador.component.html',
   styleUrl: './cotizador.component.scss'
 })
 export class CotizadorComponent implements OnInit {
-  private readonly ms2 = inject(Ms2MockService);
+  private readonly ms2 = inject(Ms2Service);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
 
   readonly desglose = signal<DesgloseCotizacion | null>(null);
   readonly recientes = signal<CotizacionReciente[]>([]);
   readonly calculando = signal(false);
+  readonly puertosEmbarque = PUERTOS_EMBARQUE;
+  readonly puertosDestino = PUERTOS_DESTINO;
 
   readonly form = this.fb.nonNullable.group({
     precioCompra: [12500, [Validators.required, Validators.min(1)]],
@@ -32,6 +37,20 @@ export class CotizadorComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const tipo = params.get('tipoVehiculo');
+      if (tipo) {
+        this.form.patchValue({ tipoVehiculo: tipo }, { emitEvent: false });
+      }
+    });
+
+    this.form.controls.puertoEmbarque.valueChanges.subscribe((value) => {
+      const puerto = PUERTOS_EMBARQUE.find((p) => p.value === value);
+      if (puerto) {
+        this.form.patchValue({ paisOrigen: puerto.pais }, { emitEvent: false });
+      }
+    });
+
     this.ms2.getCotizacionesRecientes().subscribe((data) => this.recientes.set(data));
     this.calcular();
   }

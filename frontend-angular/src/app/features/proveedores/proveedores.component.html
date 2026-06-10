@@ -2,12 +2,19 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Gestión de Proveedores</h1>
-      <p class="page-sub">Registro y control de subastas, dealers y navieras <span class="ms-tag">MS-2</span></p>
+      <!--p class="page-sub">Registro y control de subastas, dealers y navieras <span class="ms-tag">MS-2</span></p>-->
     </div>
     <button type="button" nbButton status="warning" (click)="openCreate()">
       <nb-icon icon="plus-outline" /> Nuevo Proveedor
     </button>
   </header>
+
+  @if (contextoPlan(); as ctx) {
+    <nb-alert status="info" [closable]="true" (close)="cerrarContextoPlan()">
+      Buscando proveedores para importar <strong>{{ ctx.cantidad }} {{ ctx.marca }} {{ ctx.modelo }}</strong>.
+      Revisa dealers, subastas y navieras según tu plan ML.
+    </nb-alert>
+  }
 
   <div class="kpi-grid">
     <div class="kpi-card kpi-subastas"><span class="kpi-value">{{ resumen().subastas }}</span><span class="kpi-label">Subastas</span></div>
@@ -24,11 +31,12 @@
         <h3 class="section-heading">SUBASTAS REGISTRADAS</h3>
         <div class="proveedor-cards">
           @for (p of subastas(); track p.id) {
-            <div class="proveedor-card" [class]="colorClass(p.color)">
+            <button type="button" class="proveedor-card clickable" [class]="colorClass(p.color)" (click)="verProveedor(p)">
               <strong>{{ p.nombre }}</strong>
               <span class="detalle">{{ p.detalle }}</span>
               <span class="metrica">{{ p.metrica }}</span>
-            </div>
+              <span class="ver-hint">Clic para ver</span>
+            </button>
           }
         </div>
       </section>
@@ -37,11 +45,12 @@
         <h3 class="section-heading">NAVIERAS Y TRANSPORTE</h3>
         <div class="proveedor-cards">
           @for (p of navieras(); track p.id) {
-            <div class="proveedor-card" [class]="colorClass(p.color)">
+            <button type="button" class="proveedor-card clickable" [class]="colorClass(p.color)" (click)="verProveedor(p)">
               <strong>{{ p.nombre }}</strong>
               <span class="detalle">{{ p.detalle }}</span>
               <span class="metrica">{{ p.metrica }}</span>
-            </div>
+              <span class="ver-hint">Clic para ver</span>
+            </button>
           }
         </div>
       </section>
@@ -55,21 +64,22 @@
                 <strong>{{ p.nombre }}</strong>
                 <span>{{ p.detalle }} | {{ p.metrica }}</span>
               </div>
-              <button type="button" nbButton size="small" status="info">Ver</button>
+              <button type="button" nbButton size="small" status="info" (click)="verProveedor(p)">Ver</button>
             </div>
           }
         </div>
       </section>
 
-      <section class="section-wide">
+      <section class="section-wide" [class.section-highlight]="contextoPlan()">
         <h3 class="section-heading">DEALERS</h3>
         <div class="proveedor-cards cols-3">
           @for (p of dealers(); track p.id) {
-            <div class="proveedor-card" [class]="colorClass(p.color)">
+            <button type="button" class="proveedor-card clickable" [class]="colorClass(p.color)" (click)="verProveedor(p)">
               <strong>{{ p.nombre }}</strong>
               <span class="detalle">{{ p.detalle }}</span>
               <span class="metrica">{{ p.metrica }}</span>
-            </div>
+              <span class="ver-hint">Clic para ver</span>
+            </button>
           }
         </div>
       </section>

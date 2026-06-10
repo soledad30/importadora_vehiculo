@@ -1,8 +1,10 @@
 package com.importadora.principal.domain.service;
 
+import com.importadora.principal.api.dto.FlujoCompletoResponse;
 import com.importadora.principal.api.dto.ImportacionIniciarRequest;
 import com.importadora.principal.api.dto.PedidoRequest;
 import com.importadora.principal.api.dto.PedidoResponse;
+import com.importadora.principal.integration.OrquestacionService;
 import com.importadora.principal.api.exception.BusinessRuleException;
 import com.importadora.principal.api.exception.ResourceNotFoundException;
 import com.importadora.principal.domain.model.Cliente;
@@ -20,6 +22,7 @@ import com.importadora.principal.security.SecurityActor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,6 +49,7 @@ public class PedidoService {
     private final ImportacionService importacionService;
     private final SecurityActor securityActor;
     private final NotificacionService notificacionService;
+    private final OrquestacionService orquestacionService;
 
     @Transactional(readOnly = true)
     public List<PedidoResponse> listar() {
@@ -97,6 +101,12 @@ public class PedidoService {
             throw new BusinessRuleException("El cliente está inactivo");
         }
 
+        if (rol == RolUsuario.CLIENTE) {
+            if (actor.getCliente() == null || !actor.getCliente().getId().equals(cliente.getId())) {
+                throw new BusinessRuleException("Solo puede crear pedidos para su propia cuenta");
+            }
+        }
+
         Vehiculo vehiculo = vehiculoRepository.findById(request.vehiculoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Vehículo no encontrado: id=" + request.vehiculoId()));
 
@@ -142,6 +152,7 @@ public class PedidoService {
             notificacionService.pedidoSinVendedor(codigo, cliente.nombreCompleto(), guardado.getId());
         }
         notificacionService.pedidoCreado(codigo, cliente.nombreCompleto(), guardado.getId(), cliente);
+        orquestacionService.despuesDeCrearPedido(guardado);
 
         return PedidoResponse.from(pedidoRepository.findByIdWithRelations(guardado.getId()).orElse(guardado));
     }
@@ -153,7 +164,13 @@ public class PedidoService {
         }
         Pedido pedido = obtenerPedido(id);
         if (pedido.getVendedor() != null) {
+            if (!pedido.getVendedor().getId().equals(securityActor.usuarioActual().getId())) {
+                throw new BusinessRuleException("El pedido ya está asignado a otro vendedor");
+            }
             return PedidoResponse.from(pedido);
+        }
+        if (pedido.getEstado() == EstadoPedido.ENTREGADO || pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new BusinessRuleException("No se puede tomar un pedido cerrado");
         }
         pedido.setVendedor(securityActor.usuarioActual());
         return guardarYResponder(pedido);
@@ -189,41 +206,62 @@ public class PedidoService {
     @Transactional
     public PedidoResponse confirmar(Long id) {
         Pedido pedido = obtenerPedido(id);
+        validarGestionVendedor(pedido);
         if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
             throw new BusinessRuleException("Solo se pueden aprobar pedidos pendientes");
         }
         pedido.setEstado(EstadoPedido.CONFIRMADO);
         PedidoResponse resp = guardarYResponder(pedido);
         notificarEstado(pedido, "Confirmado");
+        orquestacionService.despuesDeConfirmarPedido(pedido);
         return resp;
     }
 
     @Transactional
     public PedidoResponse iniciarImportacion(Long id, ImportacionIniciarRequest request) {
+        validarGestionVendedor(obtenerPedido(id));
         importacionService.iniciarImportacion(id, request);
         Pedido pedido = obtenerPedido(id);
         notificarEstado(pedido, "En importación / aduana");
+        orquestacionService.despuesDeIniciarImportacion(pedido);
         return obtenerPorId(id);
     }
 
     @Transactional
-    public PedidoResponse entregar(Long id) {
-        Pedido pedido = obtenerPedido(id);
-        if (pedido.getEstado() != EstadoPedido.EN_IMPORTACION) {
-            throw new BusinessRuleException("El pedido debe estar en importación para marcar como completado");
+    public FlujoCompletoResponse ejecutarFlujoCompleto(Long id, MultipartFile foto) {
+        if (securityActor.rolActual() != RolUsuario.ADMIN) {
+            throw new BusinessRuleException(
+                    "La prueba de integración MS-2/MS-3 solo está disponible para administrador");
         }
-        pedido.setEstado(EstadoPedido.ENTREGADO);
-        pedido.getVehiculo().setEstado(EstadoVehiculo.VENDIDO);
-        vehiculoRepository.save(pedido.getVehiculo());
-        importacionService.completarPorPedido(id);
-        PedidoResponse resp = guardarYResponder(pedido);
-        notificarEstado(pedido, "Entregado");
-        return resp;
+        Pedido pedido = obtenerPedido(id);
+        validarGestionVendedor(pedido);
+        if (pedido.getEstado() == EstadoPedido.PENDIENTE || pedido.getEstado() == EstadoPedido.CANCELADO) {
+            throw new BusinessRuleException(
+                    "Apruebe el pedido antes de probar la integración (estado actual: " + pedido.getEstado() + ")");
+        }
+        return orquestacionService.ejecutarFlujoCompleto(pedido, pedido.getEstado(), foto);
+    }
+
+    @Transactional(readOnly = true)
+    public com.fasterxml.jackson.databind.JsonNode inspeccionar(Long id, MultipartFile foto) {
+        if (foto == null || foto.isEmpty()) {
+            throw new BusinessRuleException("Debe adjuntar una foto");
+        }
+        Pedido pedido = obtenerPedido(id);
+        securityActor.validarClientePropio(pedido.getCliente().getId());
+        validarGestionVendedor(pedido);
+        if (pedido.getEstado() != EstadoPedido.EN_IMPORTACION) {
+            throw new BusinessRuleException(
+                    "La inspección IA aplica cuando el pedido está en importación (estado actual: "
+                            + pedido.getEstado() + ")");
+        }
+        return orquestacionService.inspeccionarVehiculo(pedido, foto);
     }
 
     @Transactional
     public PedidoResponse cancelar(Long id) {
         Pedido pedido = obtenerPedido(id);
+        validarGestionVendedor(pedido);
         if (pedido.getEstado() == EstadoPedido.ENTREGADO || pedido.getEstado() == EstadoPedido.CANCELADO) {
             throw new BusinessRuleException("No se puede cancelar el pedido en su estado actual");
         }
@@ -277,6 +315,20 @@ public class PedidoService {
     private Pedido obtenerPedido(Long id) {
         return pedidoRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado: id=" + id));
+    }
+
+    /** Vendedor debe tomar el pedido antes de gestionarlo (aprobar, importar, etc.). */
+    private void validarGestionVendedor(Pedido pedido) {
+        if (securityActor.rolActual() != RolUsuario.VENDEDOR) {
+            return;
+        }
+        Usuario vendedor = pedido.getVendedor();
+        if (vendedor == null) {
+            throw new BusinessRuleException("Debe tomar el pedido antes de gestionarlo");
+        }
+        if (!vendedor.getId().equals(securityActor.usuarioActual().getId())) {
+            throw new BusinessRuleException("No puede gestionar pedidos de otro vendedor");
+        }
     }
 
     private PedidoResponse guardarYResponder(Pedido pedido) {

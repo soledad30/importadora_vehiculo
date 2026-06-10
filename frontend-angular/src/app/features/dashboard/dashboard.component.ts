@@ -11,7 +11,7 @@ import { catchError } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificacionesBadgeService } from '../../core/services/notificaciones-badge.service';
-import { Ms2MockService } from '../../core/services/ms2-mock.service';
+import { Ms2Service } from '../../core/services/ms2.service';
 import { destinoNotificacion } from '../../core/utils/notificacion-nav.util';
 import { NotificacionItem, NivelNotificacion, Pedido, ReporteResumen } from '../../core/models';
 
@@ -46,7 +46,7 @@ interface SegmentoVenta {
 })
 export class DashboardComponent implements OnInit {
   private readonly api = inject(ApiService);
-  private readonly ms2 = inject(Ms2MockService);
+  private readonly ms2 = inject(Ms2Service);
   private readonly router = inject(Router);
   private readonly notifBadge = inject(NotificacionesBadgeService);
   readonly auth = inject(AuthService);
@@ -61,6 +61,9 @@ export class DashboardComponent implements OnInit {
   readonly actividad = signal<ActividadReciente[]>([]);
 
   readonly notifItems = signal<NotificacionItem[]>([]);
+  readonly prediccionDemanda = signal<number | null>(null);
+  readonly totalAnomalias = signal<number | null>(null);
+  readonly tendenciaHistorica = signal<string | null>(null);
 
   readonly segmentosMensual = signal<SegmentoVenta[]>([
     { label: 'SUV', porcentaje: 38, color: '#3366ff' },
@@ -119,11 +122,20 @@ export class DashboardComponent implements OnInit {
             .pipe(catchError(() => of(null as ReporteResumen | null)))
         : of(null),
       importResumen: canOps
-        ? this.ms2.getResumenImportaciones()
+        ? this.ms2.getResumenImportaciones().pipe(catchError(() => of({ enTransito: 0, enAduana: 0, pendientePago: 0, completadasMes: 0 })))
         : of({ enTransito: 0, enAduana: 0, pendientePago: 0, completadasMes: 0 }),
+      prediccion: canOps
+        ? this.ms2.getPrediccionDemanda(3).pipe(catchError(() => of(null)))
+        : of(null),
+      anomalias: canOps
+        ? this.ms2.getAnomalias().pipe(catchError(() => of(null)))
+        : of(null),
+      historico: canOps
+        ? this.ms2.getAnalisisHistorico().pipe(catchError(() => of(null)))
+        : of(null),
       notifs: this.api.getNotificaciones().pipe(catchError(() => of([] as NotificacionItem[])))
     }).subscribe({
-      next: ({ vehiculos, pedidos, reporte, importResumen, notifs }) => {
+      next: ({ vehiculos, pedidos, reporte, importResumen, prediccion, anomalias, historico, notifs }) => {
         const stock = vehiculos.filter((v) => v.estado === 'DISPONIBLE').length;
         const activos = pedidos.filter(
           (p) => p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO'
@@ -135,6 +147,14 @@ export class DashboardComponent implements OnInit {
           canOps ? (reporte?.ventasMesActual ?? this.sumEntregados(pedidos)) : this.sumEntregados(pedidos)
         );
         this.enTransito.set(importResumen.enTransito);
+        this.prediccionDemanda.set(prediccion?.totalProyectado ?? null);
+        this.totalAnomalias.set(anomalias?.totalAnomalias ?? null);
+        this.tendenciaHistorica.set(historico?.tendencia ?? null);
+
+        if (historico?.serieMensual?.length) {
+          const max = Math.max(...historico.serieMensual.map((s) => s.pedidos), 1);
+          this.barrasMensual.set(historico.serieMensual.slice(-5).map((s) => Math.round((s.pedidos / max) * 100)));
+        }
 
         const actividad = [...pedidos]
           .sort((a, b) => new Date(b.creadoEn).getTime() - new Date(a.creadoEn).getTime())

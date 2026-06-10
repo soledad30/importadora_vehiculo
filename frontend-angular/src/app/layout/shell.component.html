@@ -2,7 +2,7 @@
   <nb-layout-header fixed>
     <div class="header-bar">
       <div class="header-title">
-        <strong>Importadora de Vehículos</strong>
+        <strong>{{ 'shell.appTitle' | translate }}</strong>
         @if (user(); as u) {
           <span class="header-user">{{ u.username }} · {{ u.rol }}</span>
         }
@@ -21,10 +21,60 @@
           <nb-icon [icon]="themeIcon()" />
           <span class="sr-only">{{ themeToggleLabel() }}</span>
         </button>
-        <button type="button" nbButton status="danger" size="small" (click)="logout()">
-          <nb-icon icon="log-out-outline" />
-          Cerrar sesión
-        </button>
+
+        <div class="user-menu-wrap">
+          <button
+            type="button"
+            class="user-menu-trigger"
+            [class.open]="userMenuOpen()"
+            [attr.aria-expanded]="userMenuOpen()"
+            aria-haspopup="true"
+            [title]="'shell.userMenuTitle' | translate"
+            (click)="toggleUserMenu(); $event.stopPropagation()"
+          >
+            <span class="user-avatar">{{ userInitials() }}</span>
+            <nb-icon icon="chevron-down-outline" class="user-chevron" />
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="user-menu-panel" (click)="$event.stopPropagation()">
+              <div class="user-menu-head">
+                <span class="user-menu-avatar">{{ userInitials() }}</span>
+                <div>
+                  <strong>{{ displayName() }}</strong>
+                  <small>{{ profileEmail() || user()?.username }}</small>
+                </div>
+              </div>
+
+              <button type="button" class="user-menu-item" (click)="navigateFromMenu('/mi-cuenta')">
+                <nb-icon icon="edit-2-outline" />
+                {{ 'shell.menuProfile' | translate }}
+              </button>
+              <button type="button" class="user-menu-item" (click)="navigateFromMenu('/mi-cuenta', 'contrasena')">
+                <nb-icon icon="lock-outline" />
+                {{ 'shell.menuPassword' | translate }}
+              </button>
+              <button type="button" class="user-menu-item" (click)="navigateFromMenu('/notificaciones')">
+                <nb-icon icon="bell-outline" />
+                {{ 'shell.menuNotifications' | translate }}
+                @if (noLeidas() > 0) {
+                  <span class="user-menu-badge">{{ noLeidas() > 99 ? '99+' : noLeidas() }}</span>
+                }
+              </button>
+              <button type="button" class="user-menu-item" (click)="navigateFromMenu('/configuraciones')">
+                <nb-icon icon="settings-2-outline" />
+                {{ 'shell.menuSettings' | translate }}
+              </button>
+
+              <div class="user-menu-divider"></div>
+
+              <button type="button" class="user-menu-item danger" (click)="logout()">
+                <nb-icon icon="log-out-outline" />
+                {{ 'shell.logout' | translate }}
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </nb-layout-header>
@@ -33,8 +83,8 @@
     <div class="brand">
       <span class="brand-icon">IV</span>
       <div>
-        <strong>Importadora</strong>
-        <small>Vehículos 2026</small>
+        <strong>{{ 'shell.brandTitle' | translate }}</strong>
+        <small>{{ 'shell.brandSub' | translate }}</small>
       </div>
     </div>
 

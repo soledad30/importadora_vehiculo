@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
+import { I18nService } from './core/services/i18n.service';
 
 const THEME_CLASSES = ['nb-theme-default', 'nb-theme-dark'] as const;
 const PUBLIC_PATHS = ['/login', '/registro'];
@@ -15,8 +16,10 @@ const PUBLIC_PATHS = ['/login', '/registro'];
 export class AppComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
+  private readonly i18n = inject(I18nService);
 
   ngOnInit(): void {
+    this.i18n.applyStored();
     const saved = localStorage.getItem('importadora_theme');
     const theme = saved === 'default' || saved === 'dark' ? saved : 'dark';
     this.applyThemeClass(theme);

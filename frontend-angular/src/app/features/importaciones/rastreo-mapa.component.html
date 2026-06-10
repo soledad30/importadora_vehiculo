@@ -1,0 +1,37 @@
+<div class="rastreo-card">
+  <div class="rastreo-head">
+    <div>
+      <h3>Rastreo naviero</h3>
+      <p>Simulación de ruta marítima según etapa del embarque (MS-2)</p>
+    </div>
+    @if (embarques().length > 1) {
+      <label class="selector">
+        <span>Embarque</span>
+        <select [value]="selectedId" (change)="onEmbarqueChange($any($event.target).value)">
+          @for (e of embarques(); track e.id) {
+            <option [value]="e.id">{{ e.codigo }} — {{ e.vehiculo }}</option>
+          }
+        </select>
+      </label>
+    }
+  </div>
+
+  @if (mapError) {
+    <div class="map-error">{{ mapError }}</div>
+  }
+
+  <div #mapHost class="map-host"></div>
+
+  @if (rastreo) {
+    <div class="rastreo-meta">
+      <span><nb-icon icon="navigation-2-outline" /> {{ rastreo.origen.nombre }} → {{ rastreo.destino.nombre }}</span>
+      <span>Progreso: {{ (rastreo.progreso * 100) | number:'1.0-0' }}%</span>
+      @if (rastreo.posicionActual.velocidadNudos) {
+        <span>Velocidad simulada: {{ rastreo.posicionActual.velocidadNudos }} nudos</span>
+      }
+      @if (rastreo.simulado) {
+        <span class="sim-tag">Datos simulados</span>
+      }
+    </div>
+  }
+</div>

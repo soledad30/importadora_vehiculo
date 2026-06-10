@@ -2,7 +2,7 @@ import { CategoriaNotificacion, NotificacionItem, RolUsuario } from '../models';
 
 export interface DestinoNotificacion {
   path: string;
-  queryParams?: { focusId: number };
+  queryParams?: Record<string, string | number>;
 }
 
 const RUTAS_POR_ROL: Partial<Record<RolUsuario, string[]>> = {
@@ -29,7 +29,10 @@ function tipoDestino(n: NotificacionItem): string | null {
     DOCUMENTO: 'DOCUMENTO',
     CLIENTE: 'CLIENTE',
     PEDIDO: 'PEDIDO',
-    FACTURA: 'FACTURA'
+    FACTURA: 'FACTURA',
+    PREDICCION: 'PREDICCION',
+    BLOCKCHAIN: 'BLOCKCHAIN',
+    PROVEEDOR: 'PROVEEDOR'
   };
   return map[n.categoria] ?? null;
 }
@@ -41,7 +44,10 @@ function rutaPorTipo(tipo: string): string | null {
     CLIENTE: '/clientes',
     IMPORTACION: '/importaciones',
     DOCUMENTO: '/documentos',
-    FACTURA: '/facturas'
+    FACTURA: '/facturas',
+    PREDICCION: '/dashboard',
+    BLOCKCHAIN: '/blockchain',
+    PROVEEDOR: '/proveedores'
   };
   return map[tipo] ?? null;
 }
@@ -54,7 +60,7 @@ export function destinoNotificacion(
   if (!rol) return null;
 
   const tipo = tipoDestino(n);
-  if (!tipo) return { path: '/notificaciones' };
+  if (!tipo) return null;
 
   const path = rutaPorTipo(tipo);
   if (!path) return null;
@@ -64,7 +70,7 @@ export function destinoNotificacion(
 
   const destino: DestinoNotificacion = { path };
   if (n.referenciaId != null && n.referenciaId > 0) {
-    destino.queryParams = { focusId: n.referenciaId };
+    destino.queryParams = { ...(destino.queryParams ?? {}), focusId: n.referenciaId };
   }
   return destino;
 }

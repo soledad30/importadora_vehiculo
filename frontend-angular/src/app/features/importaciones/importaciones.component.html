@@ -6,12 +6,136 @@
     </div>
   </header>
 
+  @if (planExito()) {
+    <nb-alert status="success" [closable]="true" (close)="planExito.set(null)">{{ planExito() }}</nb-alert>
+  }
+
+  @if (mostrarPlan()) {
+    <nb-card class="plan-card">
+      <nb-card-header>
+        Planificar importación
+        <span class="ms-tag">Recomendación ML</span>
+      </nb-card-header>
+      <nb-card-body>
+        <p class="plan-intro">
+          MS-2 sugiere abrir embarques en etapa <strong>Comprado</strong>. Revisa y confirma antes de contactar al proveedor.
+        </p>
+        @if (planError()) {
+          <nb-alert status="danger" [closable]="false">{{ planError() }}</nb-alert>
+        }
+        <form class="plan-form" [formGroup]="planForm" (ngSubmit)="confirmarPlan()">
+          <label class="plan-marca-field">
+            Marca
+            <app-marca-picker formControlName="marca" />
+          </label>
+          <label>
+            Modelo
+            <input nbInput fullWidth formControlName="modelo" />
+          </label>
+          <label>
+            Unidades
+            <input nbInput fullWidth type="number" min="1" max="20" formControlName="cantidad" />
+          </label>
+          <label>
+            Puerto origen
+            <input nbInput fullWidth formControlName="origen" />
+          </label>
+          <label>
+            Puerto destino
+            <input nbInput fullWidth formControlName="destino" />
+          </label>
+          <label>
+            Naviera
+            <input nbInput fullWidth formControlName="naviera" />
+          </label>
+          <div class="plan-actions">
+            <button type="submit" nbButton status="primary" [disabled]="planificando() || planForm.invalid">
+              @if (planificando()) { Registrando… } @else { Confirmar plan de importación }
+            </button>
+            <button type="button" nbButton status="info" (click)="irACotizador()">Cotizar costos</button>
+            <button type="button" nbButton status="warning" (click)="irAProveedores()">Buscar proveedores</button>
+            <button type="button" nbButton status="basic" (click)="cancelarPlan()">Cancelar</button>
+          </div>
+        </form>
+      </nb-card-body>
+    </nb-card>
+  }
+
   @if (loading()) {
     <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
   } @else {
+    <nb-card class="filtros-card">
+      <nb-card-header class="filtros-header">
+        <nb-icon icon="funnel-outline" />
+        <span>Filtros de búsqueda</span>
+      </nb-card-header>
+      <nb-card-body>
+        <div class="filtros-grid">
+          <label class="filtro-field filtro-wide">
+            <span>Buscar embarque</span>
+            <div class="search-wrap">
+              <nb-icon icon="search-outline" />
+              <input
+                nbInput
+                fullWidth
+                class="search-input"
+                placeholder="Código, VIN, vehículo, origen, destino..."
+                [ngModel]="search()"
+                (ngModelChange)="search.set($event)"
+              />
+            </div>
+          </label>
+
+          <label class="filtro-field">
+            <span>Etapa del embarque</span>
+            <nb-select
+              fullWidth
+              placeholder="Todas las etapas"
+              [selected]="filterEtapa()"
+              (selectedChange)="filterEtapa.set($event)"
+            >
+              <nb-option value="TODAS">Todas las etapas</nb-option>
+              @for (et of etapasFiltro; track et) {
+                <nb-option [value]="et">{{ etapaLabels[et] }}</nb-option>
+              }
+            </nb-select>
+          </label>
+
+          <label class="filtro-field">
+            <span>Estado actual</span>
+            <nb-select
+              fullWidth
+              placeholder="Todos los estados"
+              [selected]="filterEstado()"
+              (selectedChange)="filterEstado.set($event)"
+            >
+              <nb-option value="TODOS">Todos los estados</nb-option>
+              <nb-option value="EN_TRANSITO">En tránsito</nb-option>
+              <nb-option value="EN_ADUANA">En aduana</nb-option>
+              <nb-option value="LIBERADO">Liberado</nb-option>
+              <nb-option value="COMPLETADO">Completado</nb-option>
+            </nb-select>
+          </label>
+        </div>
+
+        <div class="filtros-footer">
+          @if (hayFiltrosActivos()) {
+            <button type="button" nbButton size="small" status="basic" (click)="limpiarFiltros()">
+              <nb-icon icon="close-circle-outline" />
+              Limpiar filtros
+            </button>
+          }
+          <span class="filtros-count">
+            <strong>{{ embarquesFiltrados().length }}</strong>
+            de {{ embarques().length }} embarques
+          </span>
+        </div>
+      </nb-card-body>
+    </nb-card>
+
     <div class="embarques-list">
-      @for (e of embarques(); track e.id) {
-        <nb-card class="embarque-card">
+      @for (e of embarquesFiltrados(); track e.id) {
+        <nb-card class="embarque-card" [class.embarque-selected]="embarqueMapaId() === e.id" (click)="seleccionarEmbarque(e.id)">
           <nb-card-body>
             <div class="embarque-head">
               <div>
@@ -25,6 +149,18 @@
                 </p>
               </div>
               <span class="estado-badge" [class]="badgeClass(e.estadoBadge)">{{ badgeLabel(e.estadoBadge) }}</span>
+              @if (fuenteMs2() && e.etapaActual !== 'EN_LOTE') {
+                <button
+                  type="button"
+                  nbButton
+                  size="small"
+                  status="primary"
+                  [disabled]="avanzando() === e.id"
+                  (click)="avanzarEtapa(e); $event.stopPropagation()"
+                >
+                  @if (avanzando() === e.id) { Avanzando… } @else { Avanzar etapa }
+                </button>
+              }
             </div>
 
             <div class="timeline">
@@ -45,6 +181,12 @@
                 }
               }
             </div>
+          </nb-card-body>
+        </nb-card>
+      } @empty {
+        <nb-card>
+          <nb-card-body>
+            <p class="empty-filtro">No hay embarques que coincidan con la búsqueda.</p>
           </nb-card-body>
         </nb-card>
       }
@@ -91,10 +233,111 @@
       </nb-card-body>
     </nb-card>
 
-    <div class="map-placeholder">
-      <nb-icon icon="map-outline" />
-      <h3>MAPA DE RASTREO EN TIEMPO REAL</h3>
-      <p>(Integración con API de rastreo naviero — MS-2)</p>
-    </div>
+    @if (embarquesFiltrados().length) {
+      <app-rastreo-mapa
+        [embarques]="embarquesFiltrados()"
+        [usarMs2]="fuenteMs2()"
+        [selectedEmbarqueId]="embarqueMapaId()"
+      />
+    }
+
+    @if (importacionesMs1().length) {
+      <nb-card class="sunca-card">
+        <nb-card-header>
+          Trámites SUNCA / Aduana
+          <span class="ms-tag">MS-1</span>
+        </nb-card-header>
+        <nb-card-body>
+          @if (suncaExito()) {
+            <nb-alert status="success" [closable]="true" (close)="suncaExito.set(null)">{{ suncaExito() }}</nb-alert>
+          }
+          @if (suncaError()) {
+            <nb-alert status="danger" [closable]="false">{{ suncaError() }}</nb-alert>
+          }
+
+          <table class="proximas-table sunca-table">
+            <thead>
+              <tr>
+                <th>Importación</th>
+                <th>Vehículo</th>
+                <th>Estado aduana</th>
+                <th>Pago SUNCA</th>
+                <th>Total impuestos</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (imp of importacionesMs1(); track imp.id) {
+                <tr>
+                  <td class="col-id">{{ imp.codigo }}</td>
+                  <td>{{ imp.vehiculoTitulo ?? '—' }}</td>
+                  <td>{{ imp.estado }}</td>
+                  <td>
+                    <span [class]="suncaEstadoClass(imp.estadoPagoAduana)">
+                      {{ imp.estadoPagoAduana ?? 'PENDIENTE' }}
+                    </span>
+                  </td>
+                  <td>
+                    @if (imp.montoTotalImpuestos) {
+                      {{ imp.montoTotalImpuestos | currency:'USD':'symbol':'1.0-0' }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td>
+                    @if (imp.estadoPagoAduana === 'PAGADO' || imp.estadoPagoAduana === 'LIBERADO') {
+                      <span class="sunca-ok">Comprobante: {{ imp.comprobantePagoSunca }}</span>
+                    } @else {
+                      <button type="button" nbButton size="small" status="warning" (click)="abrirPagoSunca(imp)">
+                        Registrar pago
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (suncaSeleccionada(); as sel) {
+            <div class="sunca-form-panel">
+              <h4>Registrar pago SUNCA — {{ sel.codigo }}</h4>
+              @if (impuestosSunca(); as calc) {
+                <div class="sunca-calc">
+                  <span>Valor CIF: {{ calc.valorCif | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span>DAI: {{ calc.montoDai | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span>ISC: {{ calc.montoIsc | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <span>IVA aduana: {{ calc.montoIvaAduana | currency:'USD':'symbol':'1.0-0' }}</span>
+                  <strong>Total: {{ calc.montoTotalImpuestos | currency:'USD':'symbol':'1.0-0' }}</strong>
+                </div>
+              }
+              <form class="plan-form" [formGroup]="suncaForm" (ngSubmit)="registrarPagoSunca()">
+                <label>
+                  Nº DUA
+                  <input nbInput fullWidth formControlName="numeroDua" />
+                </label>
+                <label>
+                  Agente aduanal
+                  <input nbInput fullWidth formControlName="agenteAduanal" />
+                </label>
+                <label>
+                  Comprobante SUNCA
+                  <input nbInput fullWidth formControlName="comprobantePagoSunca" />
+                </label>
+                <label>
+                  Ref. póliza (opcional)
+                  <input nbInput fullWidth formControlName="referenciaPoliza" />
+                </label>
+                <div class="plan-actions">
+                  <button type="submit" nbButton status="primary" [disabled]="registrandoSunca() || suncaForm.invalid">
+                    @if (registrandoSunca()) { Registrando… } @else { Confirmar pago SUNCA }
+                  </button>
+                  <button type="button" nbButton status="basic" (click)="cerrarPagoSunca()">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          }
+        </nb-card-body>
+      </nb-card>
+    }
   }
 </div>

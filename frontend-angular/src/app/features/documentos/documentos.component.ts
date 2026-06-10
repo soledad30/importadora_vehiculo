@@ -11,8 +11,11 @@ import {
 } from '@nebular/theme';
 import { forkJoin } from 'rxjs';
 import { DocumentoImportacion } from '../../core/models/ms-extensions';
-import { Ms3MockService } from '../../core/services/ms3-mock.service';
+import { labelTipoDocumento } from '../../core/constants/tipos-documento';
+import { Ms3Service } from '../../core/services/ms3.service';
 import { DocumentoUploadDialogComponent } from './documento-upload-dialog.component';
+import { DocumentoDetailDialogComponent } from './documento-detail-dialog.component';
+import { DocumentoEditDialogComponent } from './documento-edit-dialog.component';
 
 @Component({
   selector: 'app-documentos',
@@ -22,7 +25,7 @@ import { DocumentoUploadDialogComponent } from './documento-upload-dialog.compon
   styleUrl: './documentos.component.scss'
 })
 export class DocumentosComponent implements OnInit {
-  private readonly ms3 = inject(Ms3MockService);
+  private readonly ms3 = inject(Ms3Service);
   private readonly dialog = inject(NbDialogService);
 
   readonly documentos = signal<DocumentoImportacion[]>([]);
@@ -37,6 +40,8 @@ export class DocumentosComponent implements OnInit {
     return this.documentos().filter((d) =>
       [d.nombre, d.vehiculo, d.tipo].join(' ').toLowerCase().includes(q));
   });
+
+  readonly pasosFlujo = ['Subida', 'OCR/Scan', 'Validación', 'Aprobación', 'Archivado S3'];
 
   ngOnInit(): void {
     forkJoin({
@@ -62,8 +67,57 @@ export class DocumentosComponent implements OnInit {
         dialogClass: 'cliente-dialog-panel'
       })
       .onClose.subscribe((saved) => {
-        if (saved) this.ngOnInit();
+        if (saved) this.reload();
       });
+  }
+
+  subirArchivo(doc: DocumentoImportacion): void {
+    this.dialog
+      .open(DocumentoUploadDialogComponent, {
+        closeOnBackdropClick: false,
+        autoFocus: false,
+        dialogClass: 'cliente-dialog-panel',
+        context: { docId: doc.id, vehiculo: doc.vehiculo, tipo: doc.tipo }
+      })
+      .onClose.subscribe((saved) => {
+        if (saved) this.reload();
+      });
+  }
+
+  editarDocumento(doc: DocumentoImportacion): void {
+    this.dialog
+      .open(DocumentoEditDialogComponent, {
+        closeOnBackdropClick: false,
+        autoFocus: false,
+        dialogClass: 'cliente-dialog-panel',
+        context: { documento: doc }
+      })
+      .onClose.subscribe((saved) => {
+        if (saved) this.reload();
+      });
+  }
+
+  verDocumento(id: number): void {
+    this.dialog
+      .open(DocumentoDetailDialogComponent, {
+        closeOnBackdropClick: true,
+        autoFocus: false,
+        dialogClass: 'cliente-dialog-panel',
+        context: { docId: id }
+      })
+      .onClose.subscribe((refresh) => {
+        if (refresh) this.reload();
+      });
+  }
+
+  reload(): void {
+    this.loading.set(true);
+    this.ngOnInit();
+  }
+
+  pasoLabel(pasoActual?: number): string {
+    if (pasoActual == null) return '—';
+    return this.pasosFlujo[pasoActual] ?? '—';
   }
 
   estadoClass(estado: string): string {
@@ -82,5 +136,9 @@ export class DocumentosComponent implements OnInit {
       EN_REVISION: 'En Revisión'
     };
     return map[estado] ?? estado;
+  }
+
+  tipoLabel(tipo: string): string {
+    return labelTipoDocumento(tipo);
   }
 }

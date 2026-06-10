@@ -1,18 +1,52 @@
 <div class="dialog-shell">
   <h3 class="dialog-title">Nueva Inspección con IA</h3>
-  <p class="dialog-hint">Los análisis se procesarán en MS-3 (Deep Learning)</p>
+  <p class="dialog-hint">
+    @if (pedidoId) {
+      Revise el vehículo en bodega/puerto antes de entregar (1 foto, MS-3).
+    } @else {
+      Inspección 360° — 4 fotos del mismo vehículo (MS-3).
+    }
+  </p>
+  @if (error()) { <p class="dialog-error">{{ error() }}</p> }
+  @if (validacionOk() != null) {
+    <p class="dialog-ok">Fotos validadas — coherencia {{ validacionOk() }}%</p>
+  }
   <form [formGroup]="form" class="dialog-form">
     <div class="form-field form-field-wide">
       <label>VIN del vehículo</label>
       <input nbInput fullWidth formControlName="vin" placeholder="2T3P1RFV5RC123456" />
     </div>
     <div class="form-field form-field-wide">
-      <label>Foto del vehículo</label>
-      <input type="file" accept="image/*" (change)="onFoto($event)" />
+      <label>Vehículo (opcional)</label>
+      <input nbInput fullWidth formControlName="vehiculo" placeholder="Toyota RAV4 2024" />
     </div>
+
+    @if (pedidoId) {
+      <div class="form-field form-field-wide">
+        <label>Foto del vehículo</label>
+        <input type="file" accept="image/*" (change)="onFoto($event)" />
+      </div>
+    } @else {
+      <div class="fotos-360-block">
+        <p class="fotos-360-title">Fotos del vehículo (4 vistas)</p>
+        <div class="fotos-360-grid">
+          @for (v of vistas360; track v.key) {
+            <div class="form-field foto-vista">
+              <label>{{ v.label }}</label>
+              <input type="file" accept="image/*" (change)="onFoto360(v.key, $event)" />
+              @if (previewUrl(v.key); as src) {
+                <img [src]="src" [alt]="v.label" class="foto-preview" />
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <div class="form-field form-field-wide">
       <label>Documento (opcional — OCR)</label>
-      <input type="file" accept=".pdf,image/*" />
+      <input type="file" accept=".pdf,.html,.htm,image/*" (change)="onDocumento($event)" />
+      <small class="field-hint">Título o factura para extraer VIN y datos del documento.</small>
     </div>
   </form>
   <div class="dialog-actions">

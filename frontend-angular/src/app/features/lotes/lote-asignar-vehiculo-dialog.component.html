@@ -1,0 +1,59 @@
+<div class="dialog-shell">
+  <h3 class="dialog-title">Asignar vehículo al lote</h3>
+  <p class="dialog-sub">
+    {{ lote.codigo }} · Contenedor {{ lote.numeroContenedor || '—' }}
+  </p>
+
+  @if (error()) {
+    <nb-alert status="danger" [closable]="false">{{ error() }}</nb-alert>
+  }
+
+  @if (yaEnLote().length) {
+    <div class="en-lote-block">
+      <span class="block-title">Ya en este contenedor</span>
+      <ul>
+        @for (v of yaEnLote(); track v.id) {
+          <li>{{ tituloVehiculo(v) }}</li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (!disponibles().length) {
+    <nb-alert status="warning" [closable]="false">
+      No hay vehículos sin lote. Registre compra en origen (Vehículos) o libere un vehículo de otro contenedor.
+    </nb-alert>
+  } @else {
+    <form [formGroup]="form" class="dialog-form">
+      <div class="form-field form-field-wide">
+        <label>Vehículo disponible *</label>
+        <nb-select formControlName="vehiculoId" fullWidth placeholder="Seleccione vehículo">
+          @for (v of disponibles(); track v.id) {
+            <nb-option [value]="v.id">
+              {{ tituloVehiculo(v) }} — {{ v.estado }}
+            </nb-option>
+          }
+        </nb-select>
+        <span class="field-hint">Solo se listan vehículos que aún no pertenecen a ningún lote.</span>
+      </div>
+    </form>
+  }
+
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button
+      type="button"
+      nbButton
+      status="primary"
+      class="btn-save"
+      (click)="save()"
+      [disabled]="saving() || !disponibles().length"
+    >
+      @if (saving()) {
+        <nb-spinner size="tiny" status="control" />
+      } @else {
+        ASIGNAR AL LOTE
+      }
+    </button>
+  </div>
+</div>

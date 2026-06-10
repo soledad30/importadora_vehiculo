@@ -46,6 +46,25 @@ public class Factura {
     @Column(nullable = false, precision = 14, scale = 2)
     private BigDecimal monto;
 
+    @Column(precision = 14, scale = 2)
+    private BigDecimal subtotal;
+
+    @Column(precision = 14, scale = 2)
+    private BigDecimal isv;
+
+    @Column(length = 50)
+    private String cai;
+
+    @Column(name = "rtn_emisor", length = 20)
+    private String rtnEmisor;
+
+    @Column(name = "rtn_cliente", length = 20)
+    private String rtnCliente;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "metodo_pago", length = 20)
+    private MetodoPagoFactura metodoPago;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private EstadoFactura estado;

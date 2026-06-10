@@ -16,8 +16,10 @@ import {
 import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Cliente, EstadoPedido, Pedido, Vehiculo } from '../../core/models';
+import { Cliente, EntregaCompleta, EstadoPedido, FlujoCompleto, Pedido, Vehiculo } from '../../core/models';
 import { PedidoFormDialogComponent } from './pedido-form-dialog.component';
+import { EntregaFormDialogComponent } from './entrega-form-dialog.component';
+import { InspeccionFormDialogComponent } from '../inspeccion-ia/inspeccion-form-dialog.component';
 
 @Component({
   selector: 'app-pedidos',
@@ -53,6 +55,9 @@ export class PedidosComponent implements OnInit {
   readonly filterEstado = signal<string>('TODOS');
   readonly selected = signal<Pedido | null>(null);
   readonly imagenFallida = signal<Set<number>>(new Set());
+  readonly flujoResultado = signal<FlujoCompleto | null>(null);
+  readonly flujoEjecutando = signal(false);
+  readonly entregaResultado = signal<EntregaCompleta | null>(null);
 
   readonly canManage = () => this.auth.hasRole('ADMIN', 'VENDEDOR');
   readonly isCliente = () => this.auth.hasRole('CLIENTE');
@@ -127,9 +132,13 @@ export class PedidosComponent implements OnInit {
       return;
     }
 
-    this.api.getPedidosPorCliente(clienteId).subscribe({
-      next: (pedidos) => {
+    forkJoin({
+      pedidos: this.api.getPedidosPorCliente(clienteId),
+      vehiculos: this.api.getVehiculos()
+    }).subscribe({
+      next: ({ pedidos, vehiculos }) => {
         this.items.set(pedidos);
+        this.vehiculos.set(vehiculos.filter((v) => v.estado === 'DISPONIBLE'));
         this.loading.set(false);
         this.syncSelected(pedidos);
         this.aplicarFocoDesdeRuta();
@@ -146,7 +155,9 @@ export class PedidosComponent implements OnInit {
       .open(PedidoFormDialogComponent, {
         context: {
           clientes: this.clientes(),
-          vehiculos: this.vehiculos()
+          vehiculos: this.vehiculos(),
+          modoCliente: this.isCliente(),
+          clienteIdFijo: this.auth.clienteId()
         },
         closeOnBackdropClick: false,
         dialogClass: 'cliente-dialog-panel'
@@ -158,6 +169,7 @@ export class PedidosComponent implements OnInit {
 
   ver(p: Pedido): void {
     this.selected.set(p);
+    this.entregaResultado.set(null);
     this.imagenFallida.update((s) => {
       const n = new Set(s);
       n.delete(p.id);
@@ -203,6 +215,7 @@ export class PedidosComponent implements OnInit {
     this.api.confirmarPedido(id).subscribe({
       next: (p) => {
         this.selected.set(p);
+        this.flujoResultado.set(null);
         this.load();
       },
       error: (err) => this.error.set(err?.error?.detail ?? 'Error al aprobar')
@@ -213,18 +226,27 @@ export class PedidosComponent implements OnInit {
     this.api.iniciarImportacionPedido(id).subscribe({
       next: (p) => {
         this.selected.set(p);
+        this.flujoResultado.set(null);
         this.load();
-      }
+      },
+      error: (err) => this.error.set(err?.error?.detail ?? 'Error al iniciar importación')
     });
   }
 
-  entregar(id: number): void {
-    this.api.entregarPedido(id).subscribe({
-      next: (p) => {
-        this.selected.set(p);
-        this.load();
-      }
-    });
+  abrirEntrega(p: Pedido): void {
+    if (!this.puedeEntregar(p)) return;
+    this.dialog
+      .open(EntregaFormDialogComponent, {
+        context: { pedido: p },
+        closeOnBackdropClick: false,
+        dialogClass: 'cliente-dialog-panel'
+      })
+      .onClose.subscribe((result: EntregaCompleta | false) => {
+        if (result) {
+          this.entregaResultado.set(result);
+          this.load();
+        }
+      });
   }
 
   cancelar(id: number): void {
@@ -232,19 +254,40 @@ export class PedidosComponent implements OnInit {
     this.api.cancelarPedido(id).subscribe({ next: () => this.load() });
   }
 
+  puedeTomarPedido(p: Pedido): boolean {
+    if (!this.auth.hasRole('VENDEDOR')) return false;
+    if (p.vendedorUsername) return false;
+    return p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO';
+  }
+
+  puedeGestionarPedido(p: Pedido): boolean {
+    if (this.auth.hasRole('ADMIN')) return true;
+    if (!this.auth.hasRole('VENDEDOR')) return false;
+    const actor = this.actorUsername();
+    return !!p.vendedorUsername && !!actor && p.vendedorUsername === actor;
+  }
+
+  puedeCerrarSinTomar(p: Pedido): boolean {
+    if (!this.auth.hasRole('VENDEDOR')) return false;
+    return !p.vendedorUsername && p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO';
+  }
+
   tomarPedido(p: Pedido): void {
-    if (!this.auth.hasRole('VENDEDOR')) return;
-    if (p.vendedorUsername) return;
+    if (!this.puedeTomarPedido(p)) return;
+    if (!confirm(`¿Tomar el pedido ${this.codigoDisplay(p)} de ${p.clienteNombre}?`)) return;
     this.api.tomarPedido(p.id).subscribe({
-      next: () => this.load(),
+      next: (updated) => {
+        this.items.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
+        if (this.selected()?.id === updated.id) this.selected.set(updated);
+        this.error.set(null);
+      },
       error: (err) => this.error.set(err?.error?.detail ?? 'No se pudo tomar el pedido')
     });
   }
 
   cerrarPorMotivo(p: Pedido): void {
     if (!this.canManage()) return;
-    const actor = this.actorUsername();
-    if (this.auth.hasRole('VENDEDOR') && p.vendedorUsername && actor && p.vendedorUsername !== actor) return;
+    if (this.auth.hasRole('VENDEDOR') && !this.puedeGestionarPedido(p) && !this.puedeCerrarSinTomar(p)) return;
 
     const motivo = prompt('Motivo de cierre/cancelación del pedido:');
     if (motivo == null) return;
@@ -257,6 +300,104 @@ export class PedidosComponent implements OnInit {
       next: () => this.load(),
       error: (err) => this.error.set(err?.error?.detail ?? 'No se pudo cerrar el pedido')
     });
+  }
+
+  inspeccionarPedido(p: Pedido): void {
+    if (!this.puedeInspeccionar(p)) return;
+    this.dialog
+      .open(InspeccionFormDialogComponent, {
+        context: {
+          pedidoId: p.id,
+          vinDefault: p.vehiculoVin ?? '',
+          vehiculoDefault: p.vehiculoTitulo ?? ''
+        },
+        closeOnBackdropClick: false,
+        dialogClass: 'cliente-dialog-panel'
+      })
+      .onClose.subscribe((saved) => {
+        if (saved) this.load();
+      });
+  }
+
+  ejecutarFlujo(p: Pedido): void {
+    if (!this.puedeIntegracionDemo(p)) return;
+    this.lanzarPruebaIntegracion(p.id);
+  }
+
+  private lanzarPruebaIntegracion(pedidoId: number, foto?: File): void {
+    this.flujoEjecutando.set(true);
+    this.flujoResultado.set(null);
+    this.error.set(null);
+    this.api.ejecutarFlujoCompleto(pedidoId, foto).subscribe({
+      next: (result) => {
+        this.flujoEjecutando.set(false);
+        this.flujoResultado.set(result);
+      },
+      error: (err) => {
+        this.flujoEjecutando.set(false);
+        this.error.set(err?.error?.detail ?? 'Error en prueba de integración');
+      }
+    });
+  }
+
+  pedidoCerrado(p: Pedido): boolean {
+    return p.estado === 'ENTREGADO' || p.estado === 'CANCELADO';
+  }
+
+  puedeAprobar(p: Pedido): boolean {
+    return this.puedeGestionarPedido(p) && p.estado === 'PENDIENTE';
+  }
+
+  puedeIniciarImportacion(p: Pedido): boolean {
+    return this.puedeGestionarPedido(p) && p.estado === 'CONFIRMADO';
+  }
+
+  puedeInspeccionar(p: Pedido): boolean {
+    return this.puedeGestionarPedido(p) && p.estado === 'EN_IMPORTACION';
+  }
+
+  puedeEntregar(p: Pedido): boolean {
+    return this.puedeGestionarPedido(p) && p.estado === 'EN_IMPORTACION';
+  }
+
+  puedeCancelar(p: Pedido): boolean {
+    return this.puedeGestionarPedido(p) && p.estado === 'PENDIENTE';
+  }
+
+  puedeCerrarMotivo(p: Pedido): boolean {
+    if (!this.canManage() || this.pedidoCerrado(p)) return false;
+    return this.puedeCerrarSinTomar(p) || this.puedeGestionarPedido(p);
+  }
+
+  puedeIntegracionDemo(p: Pedido): boolean {
+    return (
+      this.auth.hasRole('ADMIN') &&
+      this.puedeGestionarPedido(p) &&
+      (p.estado === 'CONFIRMADO' || p.estado === 'EN_IMPORTACION' || p.estado === 'ENTREGADO')
+    );
+  }
+
+  siguienteAccion(p: Pedido): string | null {
+    if (this.pedidoCerrado(p)) return null;
+    const map: Partial<Record<EstadoPedido, string>> = {
+      PENDIENTE: 'Siguiente paso: Aprobar el pedido para confirmar la venta.',
+      CONFIRMADO: 'Siguiente paso: Iniciar importación para abrir trámite aduanero.',
+      EN_IMPORTACION:
+        'Siguiente paso: Inspección IA del vehículo y luego Entregar y traspasar al cliente.'
+    };
+    return map[p.estado] ?? null;
+  }
+
+  pasosFlujo(p: Pedido): { label: string; done: boolean; current: boolean }[] {
+    const orden: EstadoPedido[] = ['PENDIENTE', 'CONFIRMADO', 'EN_IMPORTACION', 'ENTREGADO'];
+    const idx = orden.indexOf(p.estado);
+    const cancelado = p.estado === 'CANCELADO';
+    return [
+      { label: 'Pedido creado', done: !cancelado, current: p.estado === 'PENDIENTE' },
+      { label: 'Aprobado', done: idx >= 1 && !cancelado, current: p.estado === 'CONFIRMADO' },
+      { label: 'En importación', done: idx >= 2 && !cancelado, current: p.estado === 'EN_IMPORTACION' },
+      { label: 'Entregado', done: p.estado === 'ENTREGADO', current: p.estado === 'ENTREGADO' }
+    ];
   }
 
   private syncSelected(pedidos: Pedido[]): void {

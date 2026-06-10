@@ -10,6 +10,29 @@ export type EtapaEmbarque =
 
 export type EstadoEmbarqueBadge = 'EN_TRANSITO' | 'EN_ADUANA' | 'LIBERADO' | 'COMPLETADO';
 
+export interface PuntoNaviero {
+  nombre: string;
+  lat: number;
+  lng: number;
+}
+
+export interface RastreoNaviero {
+  embarqueId: string;
+  codigo: string;
+  vehiculo: string;
+  naviera: string;
+  etapaActual: EtapaEmbarque;
+  simulado: boolean;
+  progreso: number;
+  origen: PuntoNaviero;
+  destino: PuntoNaviero;
+  posicionActual: PuntoNaviero & {
+    velocidadNudos?: number;
+    actualizadoEn: string;
+  };
+  ruta: [number, number][];
+}
+
 export interface EmbarqueSeguimiento {
   id: string;
   codigo: string;
@@ -46,6 +69,24 @@ export interface DocumentoImportacion {
   tipo: string;
   fecha: string;
   estado: EstadoDocumento;
+  pasoActual?: number;
+  tieneArchivo?: boolean;
+}
+
+export interface DocumentoOcr {
+  propietario?: string;
+  vin?: string;
+  estado?: string;
+  fechaEmision?: string;
+  tipoTitulo?: string;
+  confianza?: number;
+}
+
+export interface DocumentoDetalle extends DocumentoImportacion {
+  ocr: DocumentoOcr | null;
+  tieneArchivo: boolean;
+  pasos: string[];
+  siguienteAccion: string | null;
 }
 
 export interface CategoriaDocumento {
@@ -59,6 +100,39 @@ export interface ResumenDocumentos {
   pendientes: number;
   porVencer: number;
   verificados: number;
+}
+
+export interface ReporteDocumentos {
+  total: number;
+  verificados: number;
+  enRevision: number;
+  pendientes: number;
+  sinArchivo: number;
+  completitudPct: number;
+  porTipo: {
+    tipo: string;
+    nombre: string;
+    total: number;
+    verificados: number;
+    sinArchivo: number;
+  }[];
+}
+
+export interface ReporteInspeccion {
+  totalInspecciones: number;
+  conDanos: number;
+  sinDanos: number;
+  costoReparacionEstimado: number;
+  porSeveridad: Record<string, number>;
+  ultimasInspecciones: {
+    vehiculo: string;
+    vin: string;
+    fecha: string;
+    resultado: string;
+    danosDetectados: number;
+    costoReparacion: number;
+    severidad: string;
+  }[];
 }
 
 export type TipoEventoBlockchain =
@@ -149,13 +223,35 @@ export interface InspeccionActiva {
   severidad: string;
   costoReparacion: number;
   danos: DanoDetectado[];
-  ocr: {
+  resultado?: string;
+  fotoUrl?: string | null;
+  fotos360?: Partial<Record<'delante' | 'detras' | 'izquierda' | 'derecha', string | null>> | null;
+  modoInspeccion?: '360' | 'simple';
+  validacionCalidad?: {
+    consistenciaMinima?: number;
+    calidadPorVista?: Record<string, { brillo: number; contraste: number; nitidez: number }>;
+  } | null;
+  ocr?: {
     propietario: string;
     vin: string;
     estado: string;
     fechaEmision: string;
     tipoTitulo: string;
-  };
+    confianza?: number;
+  } | null;
+}
+
+export interface PasoFlujo {
+  paso: number;
+  nombre: string;
+  estado: 'OK' | 'WARN' | 'SKIP' | 'ERROR';
+  detalle: string;
+}
+
+export interface FlujoCompleto {
+  pedidoId: number;
+  codigoPedido: string;
+  pasos: PasoFlujo[];
 }
 
 export interface InspeccionReciente {

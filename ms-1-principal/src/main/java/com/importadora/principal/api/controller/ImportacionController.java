@@ -1,7 +1,9 @@
 package com.importadora.principal.api.controller;
 
+import com.importadora.principal.api.dto.ImpuestosAduanaResponse;
 import com.importadora.principal.api.dto.ImportacionRequest;
 import com.importadora.principal.api.dto.ImportacionResponse;
+import com.importadora.principal.api.dto.PagoAduanaRequest;
 import com.importadora.principal.domain.service.ImportacionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,14 +31,14 @@ public class ImportacionController {
     private final ImportacionService importacionService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
     @Operation(summary = "Listar importaciones")
     public List<ImportacionResponse> listar() {
         return importacionService.listar();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
     @Operation(summary = "Obtener importación por ID")
     public ImportacionResponse obtener(@PathVariable Long id) {
         return importacionService.obtenerPorId(id);
@@ -50,9 +52,25 @@ public class ImportacionController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
     @Operation(summary = "Actualizar importación")
     public ImportacionResponse actualizar(@PathVariable Long id, @Valid @RequestBody ImportacionRequest request) {
         return importacionService.actualizar(id, request);
+    }
+
+    @GetMapping("/{id}/impuestos-aduana")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @Operation(summary = "Calcular impuestos aduaneros estimados (DAI, ISC, IVA)")
+    public ImpuestosAduanaResponse calcularImpuestos(@PathVariable Long id) {
+        return importacionService.calcularImpuestosAduana(id);
+    }
+
+    @PostMapping("/{id}/pago-aduana")
+    @PreAuthorize("hasAnyRole('ADMIN','VENDEDOR')")
+    @Operation(summary = "Registrar pago aduanero SUNCA")
+    public ImportacionResponse registrarPagoAduana(
+            @PathVariable Long id,
+            @Valid @RequestBody PagoAduanaRequest request) {
+        return importacionService.registrarPagoAduana(id, request);
     }
 }

@@ -43,6 +43,7 @@ public class ClienteService {
 
     @Transactional(readOnly = true)
     public ClienteResponse obtenerPorId(Long id) {
+        securityActor.validarClientePropio(id);
         return clienteRepository.findById(id)
                 .map(this::asegurarCodigoSiFalta)
                 .map(ClienteResponse::from)
