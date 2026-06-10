@@ -28,7 +28,8 @@
         {
           "photosPermission": "La app necesita acceso a fotos para inspección con IA (MS-3)."
         }
-      ]
+      ],
+      "expo-asset"
     ]
   }
 }
