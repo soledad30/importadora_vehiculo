@@ -1,189 +1,126 @@
 <div class="dashboard-page">
   <header class="dash-header">
-    <h1 class="dash-title">DASHBOARD</h1>
+    <div>
+      <h1 class="dash-title">Dashboard Principal</h1>
+      <p class="dash-subtitle">
+        Bienvenido, <strong>{{ welcomeName() }}</strong>
+        @if (canOps()) {
+          <span class="role-tag">{{ auth.rol() }}</span>
+        }
+      </p>
+    </div>
+    <div class="dash-meta">
+      <span class="meta-label">Última actualización</span>
+      <span class="meta-value">{{ actualizadoEn() | date:'d MMM y, HH:mm' }}</span>
+    </div>
   </header>
 
   @if (loading()) {
     <div class="loading-center"><nb-spinner status="primary" size="large" /></div>
   } @else {
     <div class="kpi-grid">
-      <a routerLink="/vehiculos" class="kpi-card kpi-stock">
-        <span class="kpi-value">{{ vehiculosStock() }}</span>
-        <span class="kpi-label">Vehículos en Stock</span>
-      </a>
-      @if (canOps()) {
-        <a routerLink="/pedidos" class="kpi-card kpi-pedidos">
-          <span class="kpi-value">{{ pedidosActivos() }}</span>
-          <span class="kpi-label">Pedidos Activos</span>
-        </a>
-        <a routerLink="/reportes" class="kpi-card kpi-ventas">
-          <span class="kpi-value">{{ ventasDisplay() }}</span>
-          <span class="kpi-label">Ventas del Mes</span>
-        </a>
-        <a routerLink="/importaciones" class="kpi-card kpi-transito">
-          <span class="kpi-value">{{ enTransito() }}</span>
-          <span class="kpi-label">En Tránsito</span>
-        </a>
-      } @else {
-        <a routerLink="/pedidos" class="kpi-card kpi-pedidos">
-          <span class="kpi-value">{{ pedidosActivos() }}</span>
-          <span class="kpi-label">Mis Pedidos Activos</span>
-        </a>
-        <div class="kpi-card kpi-ventas">
-          <span class="kpi-value">{{ ventasDisplay() }}</span>
-          <span class="kpi-label">Total Compras</span>
-        </div>
+      @for (kpi of kpiCards(); track kpi.label) {
+        @if (kpi.link) {
+          <a [routerLink]="kpi.link" class="kpi-card" [class]="'kpi-' + kpi.tone">
+            <span class="kpi-value">{{ kpi.value }}</span>
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <span class="kpi-hint">{{ kpi.hint }}</span>
+          </a>
+        } @else {
+          <div class="kpi-card" [class]="'kpi-' + kpi.tone">
+            <span class="kpi-value">{{ kpi.value }}</span>
+            <span class="kpi-label">{{ kpi.label }}</span>
+            <span class="kpi-hint">{{ kpi.hint }}</span>
+          </div>
+        }
       }
     </div>
 
-    <div class="dashboard-body" [class.cliente-view]="isCliente()">
-      <div class="main-column">
-        @if (canOps()) {
-        <nb-card class="ventas-card">
+    <div class="dashboard-grid" [class.cliente-view]="isCliente()">
+      @if (canOps()) {
+        <nb-card class="panel-card ventas-panel">
+          <nb-card-header>Ventas Mensuales 2026</nb-card-header>
           <nb-card-body>
-            <div class="ventas-tabs">
-              <button
-                type="button"
-                class="tab-btn"
-                [class.active]="ventasVista() === 'mensual'"
-                (click)="setVentasVista('mensual')"
-              >
-                VENTAS MENSUALES
-              </button>
-              <button
-                type="button"
-                class="tab-btn"
-                [class.active]="ventasVista() === 'anual'"
-                (click)="setVentasVista('anual')"
-              >
-                VENTAS ANUALES
-              </button>
+            <div class="bars-chart">
+              @for (bar of barrasVentas(); track bar.label) {
+                <div class="bar-col">
+                  <div class="bar" [style.height.%]="bar.height"></div>
+                  <span class="bar-label">{{ bar.label }}</span>
+                </div>
+              }
             </div>
+          </nb-card-body>
+        </nb-card>
 
-            <h3 class="section-title">{{ ventasTitulo() }}</h3>
+        <nb-card class="panel-card import-panel">
+          <nb-card-header>Estado Importaciones</nb-card-header>
+          <nb-card-body>
+            <div class="import-list">
+              @for (est of estadosImportacion(); track est.label) {
+                <div class="import-row">
+                  <div class="import-head">
+                    <span class="import-label">{{ est.label }}</span>
+                    <span class="import-count">{{ est.count }}</span>
+                  </div>
+                  <div class="import-track">
+                    <div class="import-fill" [style.width.%]="est.pct" [style.background]="est.color"></div>
+                  </div>
+                </div>
+              }
+            </div>
+          </nb-card-body>
+        </nb-card>
+      }
 
-            <div class="charts-row">
-              <div class="chart-pie-wrap">
-                <div class="pie-chart" [style.background]="pieGradient()"></div>
-                <div class="pie-legend" role="list">
-                  @for (s of segmentosMensual(); track s.label) {
-                    <div class="legend-item" role="listitem">
-                      <span class="legend-dot" [style.background]="s.color"></span>
-                      <span>{{ s.label }} {{ s.porcentaje }}%</span>
-                    </div>
-                  }
+      <nb-card class="panel-card actividad-panel" [class.full-width]="isCliente()">
+        <nb-card-header>{{ isCliente() ? 'Mis Pedidos Recientes' : 'Actividad Reciente' }}</nb-card-header>
+        <nb-card-body>
+          <div class="actividad-feed">
+            @for (item of actividad(); track item.titulo + item.tiempo) {
+              <div class="actividad-item" [class]="'tone-' + item.tone">
+                <span class="actividad-dot"></span>
+                <div class="actividad-content">
+                  <p class="actividad-titulo">{{ item.titulo }}</p>
+                  <p class="actividad-sub">{{ item.subtitulo }} · {{ item.tiempo }}</p>
                 </div>
               </div>
+            } @empty {
+              <p class="empty-msg">Sin actividad reciente</p>
+            }
+          </div>
+        </nb-card-body>
+      </nb-card>
 
-              <div class="chart-bars-wrap">
-                <div class="bars-chart">
-                  @for (h of barrasActuales(); track $index) {
-                    <div class="bar-col">
-                      <div class="bar" [style.height.%]="h" [style.background]="barColor($index)"></div>
-                    </div>
-                  }
-                  <svg class="trend-line" viewBox="0 0 200 80" preserveAspectRatio="none">
-                    <polyline
-                      points="0,55 40,40 80,50 120,25 160,35 200,15"
-                      fill="none"
-                      stroke="#ff3d71"
-                      stroke-width="2.5"
-                    />
-                    <polygon points="200,15 195,20 200,25" fill="#ff3d71" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </nb-card-body>
-        </nb-card>
-        }
-
-        @if (canOps() && (prediccionDemanda() != null || totalAnomalias() != null)) {
-        <nb-card class="ml-card">
-          <nb-card-header>Inteligencia MS-2 <span class="ms-tag">ML</span></nb-card-header>
+      @if (canOps()) {
+        <nb-card class="panel-card vendedores-panel">
+          <nb-card-header>Top Vendedores</nb-card-header>
           <nb-card-body>
-            <div class="ml-kpi-grid">
-              @if (prediccionDemanda() != null) {
-                <div class="ml-kpi">
-                  <span class="ml-value">{{ prediccionDemanda() }}</span>
-                  <span class="ml-label">Demanda proyectada (3 meses)</span>
-                </div>
-              }
-              @if (totalAnomalias() != null) {
-                <div class="ml-kpi">
-                  <span class="ml-value">{{ totalAnomalias() }}</span>
-                  <span class="ml-label">Anomalías detectadas</span>
-                </div>
-              }
-              @if (tendenciaHistorica()) {
-                <div class="ml-kpi">
-                  <span class="ml-value ml-trend">{{ tendenciaHistorica() }}</span>
-                  <span class="ml-label">Tendencia histórica</span>
+            <div class="vendedores-list">
+              @for (v of topVendedores(); track v.rank) {
+                <div class="vendedor-row">
+                  <span class="vendedor-rank" [class]="'rank-' + v.tone">{{ v.rank }}</span>
+                  <div class="vendedor-info">
+                    <span class="vendedor-nombre">{{ v.nombre }}</span>
+                    <span class="vendedor-stats">{{ v.ventasLabel }} · {{ v.montoLabel }}</span>
+                  </div>
                 </div>
               }
             </div>
           </nb-card-body>
         </nb-card>
-        }
-
-        <nb-card class="actividad-card">
-          <nb-card-header>{{ isCliente() ? 'Mis Pedidos Recientes' : 'Actividad Reciente' }}</nb-card-header>
-          <nb-card-body>
-            <div class="table-wrap">
-              <table class="actividad-table">
-                <thead>
-                  <tr>
-                    <th>Vehículo</th>
-                    @if (canOps()) {
-                      <th>Cliente</th>
-                    }
-                    <th>Estado</th>
-                    <th>Monto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (a of actividad(); track a.vehiculo + a.cliente) {
-                    <tr>
-                      <td class="col-vehiculo">{{ a.vehiculo }}</td>
-                      @if (canOps()) {
-                        <td class="col-cliente">{{ a.cliente }}</td>
-                      }
-                      <td><span [class]="a.estadoClass">{{ a.estado }}</span></td>
-                      <td class="col-monto">{{ a.monto | currency:'USD':'symbol':'1.0-0' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          </nb-card-body>
-        </nb-card>
-      </div>
-
-      <aside class="notif-column">
-        <nb-card class="notif-card">
-          <nb-card-header class="notif-header-row">
-            <span>Notificaciones</span>
-            <a routerLink="/notificaciones" class="ver-todas">Ver todas</a>
-          </nb-card-header>
-          <nb-card-body>
-            <div class="notif-list" role="list">
-              @for (n of notifItems(); track n.id) {
-                <div
-                  role="listitem"
-                  [class]="'notif-' + tipoNotif(n.nivel)"
-                  [class.notif-clickable]="tieneDestinoNotif(n)"
-                  (click)="abrirNotif(n)"
-                >
-                  <nb-icon [icon]="iconoNotif(n)" />
-                  <span>{{ n.mensaje }}</span>
-                </div>
-              } @empty {
-                <div class="notif-empty" role="listitem">Sin notificaciones recientes</div>
-              }
-            </div>
-          </nb-card-body>
-        </nb-card>
-      </aside>
+      }
     </div>
+
+    @if (alertas().length) {
+      <nb-card class="alertas-card">
+        <nb-card-body>
+          <div class="alertas-inner">
+            <span class="alertas-title">Alertas del Sistema</span>
+            <p class="alertas-text">{{ alertas().join(' | ') }}</p>
+            <span class="alertas-meta">Automatizado vía MS-2 · Última revisión: {{ actualizadoEn() | date:'d MMM y, HH:mm' }}</span>
+          </div>
+        </nb-card-body>
+      </nb-card>
+    }
   }
 </div>
