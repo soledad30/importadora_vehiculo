@@ -13,10 +13,14 @@ import {
   NbSelectModule,
   NbSpinnerModule
 } from '@nebular/theme';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Cliente, EntregaCompleta, EstadoPedido, FlujoCompleto, Pedido, Vehiculo } from '../../core/models';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogStatus
+} from '../../core/components/confirm-dialog/confirm-dialog.component';
 import { PedidoFormDialogComponent } from './pedido-form-dialog.component';
 import { EntregaFormDialogComponent } from './entrega-form-dialog.component';
 import { InspeccionFormDialogComponent } from '../inspeccion-ia/inspeccion-form-dialog.component';
@@ -250,8 +254,15 @@ export class PedidosComponent implements OnInit {
   }
 
   cancelar(id: number): void {
-    if (!confirm('¿Cancelar este pedido? El vehículo volverá a disponible.')) return;
-    this.api.cancelarPedido(id).subscribe({ next: () => this.load() });
+    this.openConfirm({
+      title: 'Cancelar pedido',
+      message: '¿Cancelar este pedido? El vehículo volverá a disponible.',
+      confirmLabel: 'Cancelar pedido',
+      confirmStatus: 'danger'
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.api.cancelarPedido(id).subscribe({ next: () => this.load() });
+    });
   }
 
   puedeTomarPedido(p: Pedido): boolean {
@@ -274,14 +285,21 @@ export class PedidosComponent implements OnInit {
 
   tomarPedido(p: Pedido): void {
     if (!this.puedeTomarPedido(p)) return;
-    if (!confirm(`¿Tomar el pedido ${this.codigoDisplay(p)} de ${p.clienteNombre}?`)) return;
-    this.api.tomarPedido(p.id).subscribe({
-      next: (updated) => {
-        this.items.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
-        if (this.selected()?.id === updated.id) this.selected.set(updated);
-        this.error.set(null);
-      },
-      error: (err) => this.error.set(err?.error?.detail ?? 'No se pudo tomar el pedido')
+    this.openConfirm({
+      title: 'Tomar pedido',
+      message: `¿Desea tomar el pedido ${this.codigoDisplay(p)} de ${p.clienteNombre}?`,
+      confirmLabel: 'Tomar',
+      confirmStatus: 'success'
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.api.tomarPedido(p.id).subscribe({
+        next: (updated) => {
+          this.items.update((list) => list.map((x) => (x.id === updated.id ? updated : x)));
+          if (this.selected()?.id === updated.id) this.selected.set(updated);
+          this.error.set(null);
+        },
+        error: (err) => this.error.set(err?.error?.detail ?? 'No se pudo tomar el pedido')
+      });
     });
   }
 
@@ -398,6 +416,27 @@ export class PedidosComponent implements OnInit {
       { label: 'En importación', done: idx >= 2 && !cancelado, current: p.estado === 'EN_IMPORTACION' },
       { label: 'Entregado', done: p.estado === 'ENTREGADO', current: p.estado === 'ENTREGADO' }
     ];
+  }
+
+  private openConfirm(opts: {
+    title: string;
+    message: string;
+    confirmLabel: string;
+    confirmStatus: ConfirmDialogStatus;
+    cancelLabel?: string;
+  }): Observable<boolean> {
+    return this.dialog.open(ConfirmDialogComponent, {
+      context: {
+        title: opts.title,
+        message: opts.message,
+        confirmLabel: opts.confirmLabel,
+        cancelLabel: opts.cancelLabel ?? 'Cancelar',
+        confirmStatus: opts.confirmStatus
+      },
+      closeOnBackdropClick: false,
+      autoFocus: false,
+      dialogClass: 'cliente-dialog-panel'
+    }).onClose;
   }
 
   private syncSelected(pedidos: Pedido[]): void {

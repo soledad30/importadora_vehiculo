@@ -8,18 +8,13 @@ import com.importadora.principal.domain.model.Cliente;
 import com.importadora.principal.domain.model.RolUsuario;
 import com.importadora.principal.domain.model.TipoCliente;
 import com.importadora.principal.domain.model.Usuario;
-import com.importadora.principal.domain.model.Vendedor;
 import com.importadora.principal.domain.repository.ClienteRepository;
 import com.importadora.principal.domain.repository.UsuarioRepository;
-import com.importadora.principal.domain.repository.VendedorRepository;
 import com.importadora.principal.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +22,6 @@ public class RegistrationService {
 
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
-    private final VendedorRepository vendedorRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -36,38 +30,27 @@ public class RegistrationService {
         if (!request.password().equals(request.confirmPassword())) {
             throw new BusinessRuleException("Las contraseñas no coinciden");
         }
-        if (request.rol() == RolUsuario.ADMIN) {
-            throw new BusinessRuleException("El rol Administrador no puede registrarse públicamente");
-        }
-
         String email = request.email().trim().toLowerCase();
         if (usuarioRepository.existsByEmail(email)) {
             throw new DuplicateResourceException("El correo ya está registrado");
         }
 
         String cedula = normalizarDocumento(request.cedulaDocumento());
-        validarDocumentoUnico(cedula, request.rol());
+        validarDocumentoUnico(cedula);
 
         String username = generarUsernameUnico(email);
-        Cliente cliente = null;
-        if (request.rol() == RolUsuario.CLIENTE) {
-            cliente = crearCliente(request, email, cedula);
-        }
+        Cliente cliente = crearCliente(request, email, cedula);
 
         Usuario usuario = Usuario.builder()
                 .username(username)
                 .password(passwordEncoder.encode(request.password()))
                 .email(email)
-                .rol(request.rol())
+                .rol(RolUsuario.CLIENTE)
                 .cliente(cliente)
                 .activo(true)
                 .build();
 
         usuario = usuarioRepository.save(usuario);
-
-        if (request.rol() == RolUsuario.VENDEDOR) {
-            crearVendedor(request, email, cedula, usuario);
-        }
 
         return toLoginResponse(usuario);
     }
@@ -91,29 +74,9 @@ public class RegistrationService {
         return clienteRepository.save(cliente);
     }
 
-    private void crearVendedor(RegisterRequest request, String email, String cedula, Usuario usuario) {
-        Vendedor vendedor = Vendedor.builder()
-                .usuario(usuario)
-                .nombreCompleto(request.nombreCompleto().trim())
-                .telefono(telefonoOrDefault(request.telefono()))
-                .email(email)
-                .cedula(cedula)
-                .fechaIngreso(LocalDate.now())
-                .metaMensual(BigDecimal.ZERO)
-                .comisionPorcentaje(BigDecimal.ZERO)
-                .enCampo(false)
-                .build();
-        vendedor = vendedorRepository.save(vendedor);
-        vendedor.setCodigo(String.format("VEN-%03d", vendedor.getId()));
-        vendedorRepository.save(vendedor);
-    }
-
-    private void validarDocumentoUnico(String cedula, RolUsuario rol) {
-        if (rol == RolUsuario.CLIENTE && clienteRepository.existsByNumeroDocumento(cedula)) {
+    private void validarDocumentoUnico(String cedula) {
+        if (clienteRepository.existsByNumeroDocumento(cedula)) {
             throw new DuplicateResourceException("La cédula o RUC ya está registrado");
-        }
-        if (rol == RolUsuario.VENDEDOR && vendedorRepository.existsByCedula(cedula)) {
-            throw new DuplicateResourceException("La cédula ya está registrada");
         }
     }
 

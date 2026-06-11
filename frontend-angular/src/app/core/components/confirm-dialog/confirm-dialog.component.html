@@ -1,0 +1,8 @@
+<div class="dialog-shell confirm-dialog">
+  <h3 class="dialog-title">{{ title }}</h3>
+  <p class="dialog-message">{{ message }}</p>
+  <div class="dialog-actions">
+    <button type="button" nbButton status="basic" (click)="cancel()">{{ cancelLabel }}</button>
+    <button type="button" nbButton [status]="confirmStatus" (click)="confirm()">{{ confirmLabel }}</button>
+  </div>
+</div>

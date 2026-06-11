@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   NbAlertModule,
   NbButtonModule,
@@ -18,6 +18,7 @@ import { Cliente, RolUsuario, Usuario } from '../../core/models';
   selector: 'app-usuarios',
   standalone: true,
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     NbCardModule,
     NbButtonModule,
@@ -44,8 +45,30 @@ export class UsuariosComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
   readonly togglingId = signal<number | null>(null);
+  readonly search = signal('');
+  readonly showFilters = signal(false);
+  readonly filterRol = signal<RolUsuario | 'TODOS'>('TODOS');
+  readonly filterEstado = signal<'TODOS' | 'ACTIVO' | 'INACTIVO'>('TODOS');
 
   readonly isAdmin = computed(() => this.auth.rol() === 'ADMIN');
+
+  readonly filtered = computed(() => {
+    const q = this.search().trim().toLowerCase();
+    const rol = this.filterRol();
+    const estado = this.filterEstado();
+
+    return this.items().filter((u) => {
+      if (rol !== 'TODOS' && u.rol !== rol) return false;
+      if (estado === 'ACTIVO' && !u.activo) return false;
+      if (estado === 'INACTIVO' && u.activo) return false;
+      if (!q) return true;
+
+      const haystack = [u.username, u.email, u.clienteNombre ?? '', this.rolLabel(u.rol)]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  });
 
   readonly rolesDisponibles = computed((): { value: RolUsuario; label: string }[] => {
     if (this.isAdmin()) {
@@ -200,6 +223,16 @@ export class UsuariosComponent implements OnInit {
         this.error.set(err?.error?.detail ?? `No se pudo ${accion} el usuario`);
       }
     });
+  }
+
+  toggleFilters(): void {
+    this.showFilters.update((v) => !v);
+  }
+
+  limpiarFiltros(): void {
+    this.search.set('');
+    this.filterRol.set('TODOS');
+    this.filterEstado.set('TODOS');
   }
 
   rolLabel(rol: RolUsuario): string {

@@ -4,7 +4,7 @@ services:
     container_name: importadora-postgres
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "5432:5432"cd 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin123

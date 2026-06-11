@@ -47,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Registro público (roles CLIENTE o VENDEDOR)")
+    @Operation(summary = "Registro público (solo rol CLIENTE)")
     public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(registrationService.register(request));
     }

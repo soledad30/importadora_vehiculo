@@ -1,19 +1,45 @@
+<div class="usuarios-page">
 <div class="page-header">
   <div>
     <h4>Usuarios del sistema</h4>
-    <p class="page-sub">
-      <!--@if (isAdmin()) {
-        Como administrador puede registrar usuarios y restablecer la contraseña de vendedores o clientes que la olvidaron.
-      } @else {
-        Como vendedor solo puede registrar usuarios CLIENTE vinculados a un cliente.
-    }-->
-    </p>
+    <p class="page-sub">{{ filtered().length }} de {{ items().length }} usuarios</p>
   </div>
   <button type="button" nbButton status="primary" (click)="openCreate()">
     <nb-icon icon="person-add-outline" />
     Nuevo usuario
   </button>
 </div>
+
+<div class="toolbar">
+  <input
+    nbInput
+    fullWidth
+    class="search-input"
+    placeholder="Buscar por usuario, email, rol o cliente..."
+    [ngModel]="search()"
+    (ngModelChange)="search.set($event)"
+  />
+  <button type="button" nbButton status="info" (click)="toggleFilters()">Filtros</button>
+  @if (search() || filterRol() !== 'TODOS' || filterEstado() !== 'TODOS') {
+    <button type="button" nbButton status="basic" (click)="limpiarFiltros()">Limpiar</button>
+  }
+</div>
+
+@if (showFilters()) {
+  <div class="filters-row">
+    <nb-select placeholder="Rol" [selected]="filterRol()" (selectedChange)="filterRol.set($event)">
+      <nb-option value="TODOS">Todos los roles</nb-option>
+      <nb-option value="ADMIN">Administrador</nb-option>
+      <nb-option value="VENDEDOR">Vendedor</nb-option>
+      <nb-option value="CLIENTE">Cliente</nb-option>
+    </nb-select>
+    <nb-select placeholder="Estado" [selected]="filterEstado()" (selectedChange)="filterEstado.set($event)">
+      <nb-option value="TODOS">Todos</nb-option>
+      <nb-option value="ACTIVO">Activo</nb-option>
+      <nb-option value="INACTIVO">Inactivo</nb-option>
+    </nb-select>
+  </div>
+}
 
 @if (success() && !showForm() && !resetTarget()) {
   <nb-alert status="success" (close)="success.set(null)">{{ success() }}</nb-alert>
@@ -123,7 +149,14 @@
             </tr>
           </thead>
           <tbody>
-            @for (u of items(); track u.id) {
+            @if (filtered().length === 0) {
+              <tr>
+                <td [attr.colspan]="isAdmin() ? 6 : 5" class="empty-row">
+                  No hay usuarios con los filtros seleccionados.
+                </td>
+              </tr>
+            }
+            @for (u of filtered(); track u.id) {
               <tr>
                 <td>{{ u.username }}</td>
                 <td>{{ u.email }}</td>
@@ -176,3 +209,4 @@
     }
   </nb-card-body>
 </nb-card>
+</div>

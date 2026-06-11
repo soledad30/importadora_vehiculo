@@ -1,6 +1,12 @@
 # Fija JAVA_HOME a JDK 17 (requerido por Gradle/Android; Java 25 no es compatible).
 # Uso: . .\scripts\use-jdk17.ps1
 
+function Get-JavaVersionOutput {
+    param([string]$JavaExe)
+    # java -version escribe en stderr; cmd evita que PowerShell lo trate como error nativo.
+    cmd /c "`"$JavaExe`" -version 2>&1"
+}
+
 function Find-Jdk17Path {
     $seen = [System.Collections.Generic.HashSet[string]]::new()
     $candidates = [System.Collections.Generic.List[string]]::new()
@@ -25,7 +31,7 @@ function Find-Jdk17Path {
         $javaExe = Join-Path $path 'bin\java.exe'
         if (-not (Test-Path $javaExe)) { continue }
 
-        $version = & $javaExe -version 2>&1 | Out-String
+        $version = Get-JavaVersionOutput $javaExe | Out-String
         if ($version -match 'version "17') {
             return $path
         }
@@ -47,4 +53,4 @@ $env:JAVA_HOME = $jdk17
 $env:Path = "$env:JAVA_HOME\bin;" + $env:Path
 
 Write-Host "JAVA_HOME -> $env:JAVA_HOME"
-java -version 2>&1 | ForEach-Object { Write-Host $_ }
+Get-JavaVersionOutput (Join-Path $env:JAVA_HOME 'bin\java.exe') | ForEach-Object { Write-Host $_ }

@@ -1,7 +1,35 @@
+.usuarios-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 .page-sub {
   margin: 0.25rem 0 0;
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+.toolbar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+
+  .search-input {
+    flex: 1;
+    min-width: 220px;
+  }
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  nb-select {
+    min-width: 180px;
+  }
 }
 
 .form-card {
@@ -22,6 +50,12 @@
   display: flex;
   justify-content: center;
   padding: 2rem;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--text-hint-color);
 }
 
 .actions-cell {

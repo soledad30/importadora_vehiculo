@@ -3,7 +3,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
-import { RolUsuario } from '../../core/models';
 
 function passwordsMatch(group: AbstractControl): ValidationErrors | null {
   const p = group.get('password')?.value;
@@ -27,18 +26,12 @@ export class RegistroComponent {
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
 
-  readonly roles: { value: RolUsuario; label: string }[] = [
-    { value: 'VENDEDOR', label: 'Vendedor' },
-    { value: 'CLIENTE', label: 'Cliente' }
-  ];
-
   readonly form = this.fb.nonNullable.group(
     {
       nombreCompleto: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       telefono: ['', Validators.required],
       cedulaDocumento: ['', [Validators.required, Validators.minLength(5)]],
-      rol: ['VENDEDOR' as RolUsuario, Validators.required],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     },

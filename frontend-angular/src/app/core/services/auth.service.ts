@@ -49,7 +49,6 @@ export class AuthService {
     email: string;
     telefono?: string;
     cedulaDocumento: string;
-    rol: RolUsuario;
     password: string;
     confirmPassword: string;
   }): Observable<LoginResponse> {
